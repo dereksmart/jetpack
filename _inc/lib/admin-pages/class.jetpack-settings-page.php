@@ -61,6 +61,22 @@ class Jetpack_Settings_Page extends Jetpack_Admin_Page {
 								</div>
 								<p><?php esc_html_e( 'Show:', 'jetpack' ); ?></p>
 								<?php $list_table->views(); ?>
+								<p><?php esc_html_e( 'Export/Import:', 'jetpack' ); ?></p>
+								<ul>
+									<li>
+										<a href="?export">export</a>
+									</li>
+									<li>
+										<form enctype="multipart/form-data" action="upload-mods.php" method="POST">
+											<!-- MAX_FILE_SIZE must precede the file input field -->
+											<input type="hidden" name="MAX_FILE_SIZE" value="30000" />
+											<!-- Name of input element determines name in $_FILES array -->
+											Send this file:
+											<input name="userfile" type="file" />
+											<input type="submit" value="Send File" />
+										</form>
+									</li>
+								</ul>
 							</form>
 						</div>
 					</div>

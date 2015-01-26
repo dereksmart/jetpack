@@ -304,7 +304,6 @@ class Jetpack {
 			// Add missing version and old_version options
 			if ( ! $version = Jetpack_Options::get_option( 'version' ) ) {
 				$version = $old_version = '1.1:' . time();
-				do_action( 'updating_jetpack_version', $version, false );
 				Jetpack_Options::update_options( compact( 'version', 'old_version' ) );
 			}
 		}
@@ -352,7 +351,13 @@ class Jetpack {
 		 * here, before we potentially fail out.
 		 */
 		add_filter( 'jetpack_require_lib_dir', 		array( $this, 'require_lib_dir' ) );
-
+		/**
+		 * Update the main_network_site on .com
+		 */
+		add_filter( 'pre_option_jetpack_main_network_site', array( $this, 'jetpack_main_network_site_option' ) );
+		add_action( 'update_option_siteurl', 			array( $this, 'update_jetpack_main_network_site_option' ) );
+		// Update jetpack_is_main_network on .com
+		add_filter( 'pre_option_jetpack_is_main_network', array( $this, 'is_main_network_option' ) );
 		/*
 		 * Load things that should only be in Network Admin.
 		 *
@@ -379,21 +384,10 @@ class Jetpack {
 			'siteurl',
 			'blogname',
 			'gmt_offset',
-			'timezone_string'
+			'timezone_string',
+			'jetpack_main_network_site',
+			'jetpack_is_main_network'
 		);
-
-		/**
-		 * Sometimes you want to sync data to .com without adding options to .org sites.
-		 * The mock option allows you to do just that.
-		 */
-		$this->sync->mock_option( 'is_main_network',   array( $this, 'is_main_network_option' ) );
-		$this->sync->mock_option( 'main_network_site', array( $this, 'jetpack_main_network_site_option' ) );
-
-		/**
-		 * Trigger an update to the main_network_site when we update the blogname of a site.
-		 *
-		 */
-		add_action( 'update_option_blogname', array( $this, 'update_jetpack_main_network_site_option' ) );
 
 		add_action( 'update_option', array( $this, 'log_settings_change' ), 10, 3 );
 
@@ -650,7 +644,7 @@ class Jetpack {
 	 * @param  bool $option
 	 * @return string
 	 */
-	public function jetpack_main_network_site_option( $option ) {
+	function jetpack_main_network_site_option( $option ) {
 		return network_site_url();
 	}
 
@@ -664,7 +658,7 @@ class Jetpack {
 	 *
 	 * @return boolean
 	 */
-	public function is_main_network_option( $option ) {
+	public static function is_main_network_option( $option ) {
 		// return '1' or ''
 		return (string) (bool) Jetpack::is_multi_network();
 	}
@@ -697,7 +691,7 @@ class Jetpack {
 	 * @return null
 	 */
 	function update_jetpack_main_network_site_option() {
-		do_action( 'add_option_jetpack_main_network_site', 'jetpack_main_network_site', network_site_url() );
+		do_action( 'add_option_jetpack_main_network_site', 'main_network_site', network_site_url() );
 		do_action( 'add_option_jetpack_is_main_network', 'jetpack_is_main_network', (string) (bool) Jetpack::is_multi_network() );
 	}
 
@@ -881,7 +875,6 @@ class Jetpack {
 		$version = Jetpack_Options::get_option( 'version' );
 		if ( ! $version ) {
 			$version = $old_version = JETPACK__VERSION . ':' . time();
-			do_action( 'updating_jetpack_version', $version, false );
 			Jetpack_Options::update_options( compact( 'version', 'old_version' ) );
 		}
 		list( $version ) = explode( ':', $version );
@@ -1174,7 +1167,6 @@ class Jetpack {
 		$jetpack_old_version = Jetpack_Options::get_option( 'version' ); // [sic]
 		if ( ! $jetpack_old_version ) {
 			$jetpack_old_version = $version = $old_version = '1.1:' . time();
-			do_action( 'updating_jetpack_version', $version, false );
 			Jetpack_Options::update_options( compact( 'version', 'old_version' ) );
 		}
 
@@ -1204,11 +1196,9 @@ class Jetpack {
 			add_action( 'jetpack_activate_default_modules', array( $this->sync, 'sync_all_registered_options' ), 1000 );
 		}
 
-		$new_version = JETPACK__VERSION . ':' . time();
-		do_action( 'updating_jetpack_version', $new_version, $jetpack_old_version );
 		Jetpack_Options::update_options(
 			array(
-				'version'     => $new_version,
+				'version'     => JETPACK__VERSION . ':' . time(),
 				'old_version' => $jetpack_old_version,
 			)
 		);
@@ -1798,19 +1788,6 @@ p {
 
 		Jetpack::plugin_initialize();
 	}
-	/**
-	 * Runs before bumping version numbers up to a new version
-	 * @param  (string) $version    Version:timestamp
-	 * @param  (string) $old_version Old Version:timestamp or false if not set yet.
-	 * @return null              [description]
-	 */
-	public static function do_version_bump( $version, $old_version ) {
-
-		if ( ! $old_version ) { // For new sites
-			// Setting up jetpack manage
-			Jetpack_Options::update_options( 'json_api_full_management', true );
-		}
-	}
 
 	/**
 	 * Sets the internal version number and activation state.
@@ -1823,7 +1800,6 @@ p {
 
 		if ( ! Jetpack_Options::get_option( 'version' ) ) {
 			$version = $old_version = JETPACK__VERSION . ':' . time();
-			do_action( 'updating_jetpack_version', $version, false );
 			Jetpack_Options::update_options( compact( 'version', 'old_version' ) );
 		}
 
@@ -2384,8 +2360,8 @@ p {
 	}
 
 	function admin_connect_notice() {
-		// Don't show the connect notice on the jetpack settings page.
-		if ( empty( $_GET['page'] ) || 'jetpack' !== $_GET['page'] )
+		// Don't show the connect notice on the jetpack settings page. @todo: must be a better way?
+		if ( false !== strpos( $_SERVER['QUERY_STRING'], 'page=jetpack' ) )
 			return;
 
 		if ( ! current_user_can( 'jetpack_connect' ) )
@@ -2426,8 +2402,8 @@ p {
 	 * @return null
 	 */
 	function admin_jetpack_manage_notice() {
-		// Don't show the connect notice on the jetpack settings page.
-		if ( empty( $_GET['page'] ) || 'jetpack' !== $_GET['page'] )
+		// Don't show the connect notice on the jetpack settings page. @todo: must be a better way?
+		if ( false !== strpos( $_SERVER['QUERY_STRING'], 'page=jetpack' ) )
 			return;
 
 		// Only show it if don't have the managment option set.
@@ -2497,11 +2473,7 @@ p {
 		if( Jetpack::is_development_mode() ) {
 			return false;
 		}
-		// don't display if the site is private
-		if(  ! Jetpack_Options::get_option( 'public' ) )
-			return false;
-
-		return apply_filters( 'can_display_jetpack_manage_notice', ! Jetpack_Options::get_option( 'json_api_full_management' ) || ! self::is_module_active( 'json-api' ) );
+		return apply_filters( 'can_display_jetpack_manage_notice', ! Jetpack_Options::get_option( 'json_api_full_management' )  || ! self::is_module_active( 'json-api' ) ||  ! Jetpack_Options::get_option( 'public' ) );
 	}
 
 	function network_connect_notice() {
@@ -3514,12 +3486,8 @@ p {
 	}
 
 	public static function admin_screen_configure_module( $module_id ) {
-
-		// User that doesn't have 'jetpack_configure_modules' will never end up here since Jetpack Landing Page woun't let them.
-		if ( ! in_array( $module_id, Jetpack::get_active_modules() ) && current_user_can( 'manage_options' ) ) {
-			self::display_activate_module_link( $module_id );
-			return false;
-		} ?>
+		if ( ! in_array( $module_id, Jetpack::get_active_modules() ) || ! current_user_can( 'manage_options' ) )
+			return false; ?>
 
 		<div id="jp-settings-screen" style="position: relative">
 			<h3>
@@ -3529,67 +3497,9 @@ p {
 				printf( __( 'Configure %s', 'jetpack' ), $module['name'] );
 			?>
 			</h3>
-			<?php do_action( 'jetpack_notices_update_settings', $module_id ); ?>
+
 			<?php do_action( 'jetpack_module_configuration_screen_' . $module_id ); ?>
 		</div><?php
-	}
-
-	/**
-	 * Display link to activate the module to see the settings screen.
-	 * @param  string $module_id
-	 * @return null
-	 */
-	public static function display_activate_module_link( $module_id ) {
-
-		$info =  Jetpack::get_module( $module_id );
-		$extra = '';
-		$activate_url = wp_nonce_url(
-				Jetpack::admin_url(
-					array(
-						'page'   => 'jetpack',
-						'action' => 'activate',
-						'module' => $module_id,
-					)
-				),
-				"jetpack_activate-$module_id"
-			);
-
-		?>
-
-		<div class="wrap configure-module">
-			<div id="jp-settings-screen">
-				<?php
-				if ( $module_id == 'json-api' ) {
-
-					$info['name'] = esc_html__( 'Activate Site Management and JSON API', 'jetpack' );
-
-					$activate_url = Jetpack::init()->opt_in_jetpack_manage_url();
-
-					$info['description'] = sprintf( __( 'Manage your plugins and more for multiple Jetpack sites from our centralized dashboard at wordpress.com/plugins. <a href="%s" target="_blank">Learn more</a>.', 'jetpack' ), 'http://jetpack.me/support/site-management' );
-
-					$extra = __( 'To use Site Management, you need to first activate JSON API to allow remote management of your site. ', 'jetpack' );
-				} ?>
-
-				<h3><?php echo esc_html( $info['name'] ); ?></h3>
-				<div class="narrow">
-					<p><?php echo  $info['description']; ?></p>
-					<?php if( $extra ) { ?>
-					<p><?php echo esc_html( $extra ); ?></p>
-					<?php } ?>
-					<p>
-						<?php
-						if( wp_get_referer() ) {
-							printf( __( '<a class="button-primary" href="%s">Activate Now</a> or <a href="%s" >return to previous page</a>.', 'jetpack' ) , $activate_url, wp_get_referer() );
-						} else {
-							printf( __( '<a class="button-primary" href="%s">Activate Now</a>', 'jetpack' ) , $activate_url  );
-						} ?>
-					</p>
-				</div>
-
-			</div>
-		</div>
-
-		<?php
 	}
 
 	public static function sort_modules( $a, $b ) {
@@ -5200,28 +5110,5 @@ p {
 		}
 
 		return $tag;
-	}
-
-	/**
-	 * Stores and prints out domains to prefetch for page speed optimization.
-	 *
-	 * @param mixed $new_urls
-	 */
-	public static function dns_prefetch( $new_urls = null ) {
-		static $prefetch_urls = array();
-		if ( empty( $new_urls ) && ! empty( $prefetch_urls ) ) {
-			echo "\r\n";
-			foreach ( $prefetch_urls as $this_prefetch_url ) {
-				printf( "<link rel='dns-prefetch' href='%s'>\r\n", esc_attr( $this_prefetch_url ) );
-			}
-		} elseif ( ! empty( $new_urls ) ) {
-			if ( ! has_action( 'wp_head', array( __CLASS__, __FUNCTION__ ) ) ) {
-				add_action( 'wp_head', array( __CLASS__, __FUNCTION__ ) );
-			}
-			foreach ( (array) $new_urls as $this_new_url ) {
-				$prefetch_urls[] = strtolower( untrailingslashit( preg_replace( '#^https?://#i', '//', $this_new_url ) ) );
-			}
-			$prefetch_urls = array_unique( $prefetch_urls );
-		}
 	}
 }
