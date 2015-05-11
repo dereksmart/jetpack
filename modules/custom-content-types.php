@@ -12,6 +12,7 @@
 
 function jetpack_load_custom_post_types() {
 	include dirname( __FILE__ ) . "/custom-post-types/portfolios.php";
+	include dirname( __FILE__ ) . "/custom-post-types/coming-soon.php";
 }
 
 function jetpack_custom_post_types_loaded() {
