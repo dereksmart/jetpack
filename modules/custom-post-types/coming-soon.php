@@ -131,7 +131,7 @@ class Jetpack_Coming_Soon {
 			array(
 				'sanitize_callback'    => array( 'Jetpack_Coming_Soon_Checkbox_Control', 'sanitize_content' ),
 				'sanitize_js_callback' => array( 'Jetpack_Coming_Soon_Checkbox_Control', 'sanitize_content' ),
-				'transport'            => 'postMessage',
+				'transport'            => 'refresh',
 			)
 		);
 
@@ -148,7 +148,7 @@ class Jetpack_Coming_Soon {
 				'default'              => esc_html__( 'Coming Soon', 'jetpack' ),
 				'sanitize_callback'    => array( 'Jetpack_Coming_Soon_Title_Control', 'sanitize_content' ),
 				'sanitize_js_callback' => array( 'Jetpack_Coming_Soon_Title_Control', 'sanitize_content' ),
-				'transport'            => 'postMessage',
+				'transport'            => 'refresh',
 			)
 		);
 
@@ -165,7 +165,7 @@ class Jetpack_Coming_Soon {
 				'default'              => '',
 				'sanitize_callback'    => array( 'Jetpack_Coming_Soon_Textarea_Control', 'sanitize_content' ),
 				'sanitize_js_callback' => array( 'Jetpack_Coming_Soon_Textarea_Control', 'sanitize_content' ),
-				'transport'            => 'postMessage',
+				'transport'            => 'refresh',
 			)
 		);
 
@@ -183,7 +183,7 @@ class Jetpack_Coming_Soon {
 				'sanitize_callback'    => 'attachment_url_to_postid',
 				'sanitize_js_callback' => 'attachment_url_to_postid',
 				'theme_supports'       => 'post-thumbnails',
-				'transport'            => 'postMessage',
+				'transport'            => 'refresh',
 			)
 		);
 
