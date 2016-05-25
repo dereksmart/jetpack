@@ -26,34 +26,34 @@ env:
 matrix:
   include:
    - php: "5.6"
-     env: WP_VERSION=4.5 WP_TRAVISCI=travis:js
+     env: WP_VERSION=4.5 WP_TRAVISCI="gulp travis:js"
    - php: "5.2"
-     env: WP_VERSION=master WP_TRAVISCI=travis:phpunit
+     env: WP_VERSION=master WP_TRAVISCI=phpunit
    - php: "5.2"
-     env: WP_VERSION=4.4 WP_TRAVISCI=travis:phpunit
+     env: WP_VERSION=4.4 WP_TRAVISCI=phpunit
    - php: "5.2"
-     env: WP_VERSION=4.5 WP_TRAVISCI=travis:phpunit
+     env: WP_VERSION=4.5 WP_TRAVISCI=phpunit
    - php: "5.3"
-     env: WP_VERSION=4.5 WP_TRAVISCI=travis:phpunit
+     env: WP_VERSION=4.5 WP_TRAVISCI=phpunit
    - php: "5.4"
-     env: WP_VERSION=4.5 WP_TRAVISCI=travis:phpunit
+     env: WP_VERSION=4.5 WP_TRAVISCI=phpunit
    - php: "5.5"
-     env: WP_VERSION=master WP_TRAVISCI=travis:phpunit
+     env: WP_VERSION=master WP_TRAVISCI=phpunit
    - php: "5.5"
-     env: WP_VERSION=4.4 WP_TRAVISCI=travis:phpunit
+     env: WP_VERSION=4.4 WP_TRAVISCI=phpunit
    - php: "5.5"
-     env: WP_VERSION=4.5 WP_TRAVISCI=travis:phpunit
+     env: WP_VERSION=4.5 WP_TRAVISCI=phpunit
      # 5.6 / master already included above as first build.
    - php: "5.6"
-     env: WP_VERSION=4.4 WP_TRAVISCI=travis:phpunit
+     env: WP_VERSION=4.4 WP_TRAVISCI=phpunit
    - php: "5.6"
-     env: WP_VERSION=4.5 WP_TRAVISCI=travis:phpunit
+     env: WP_VERSION=4.5 WP_TRAVISCI=phpunit
    - php: "7.0"
-     env: WP_VERSION=master WP_TRAVISCI=travis:phpunit
+     env: WP_VERSION=master WP_TRAVISCI=phpunit
    - php: hhvm
-     env: WP_VERSION=master WP_TRAVISCI=travis:phpunit
+     env: WP_VERSION=master WP_TRAVISCI=phpunit
    - php: "nightly"
-     env: WP_VERSION=master WP_TRAVISCI=travis:phpunit
+     env: WP_VERSION=master WP_TRAVISCI=phpunit
   allow_failures:
    - php: "hhvm"
    - php: "nightly"
@@ -87,7 +87,7 @@ before_script:
     - npm install -g gulp-cli
     - npm install
 
-script: gulp $WP_TRAVISCI
+script: $WP_TRAVISCI
 
 sudo: false
 
