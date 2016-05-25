@@ -16,7 +16,7 @@ var autoprefixer = require( 'gulp-autoprefixer' ),
 	rename = require( 'gulp-rename' ),
 	rtlcss = require( 'gulp-rtlcss' ),
 	sass = require( 'gulp-sass' ),
-	shell = require( 'gulp-shell' ),
+	exec = require( 'child_process' ).exec,
 	sourcemaps = require( 'gulp-sourcemaps' ),
 	stylish = require( 'jshint-stylish'),
 	util = require( 'gulp-util' ),
@@ -188,33 +188,33 @@ gulp.task( 'frontendcss', function() {
 });
 
 /*
-	Sass!
+ Sass!
  */
 gulp.task( 'old-sass', function() {
-		return gulp.src( 'scss/**/*.scss' )
-			.pipe( sass( { outputStyle: 'expanded' } ).on( 'error', sass.logError ) )
-			.pipe( banner( '/*!\n'+
-				'* Do not modify this file directly.  It is compiled SASS code.\n'+
-				'*/\n'
-			) )
-			.pipe( autoprefixer() )
-			// Build *.css & sourcemaps
-			.pipe( sourcemaps.init() )
-			.pipe( sourcemaps.write( './' ) )
-			.pipe( rename( { dirname: 'css' } ) )
-			.pipe( gulp.dest( './' ) )
-			// Build *.min.css & sourcemaps
-			.pipe( cleanCSS( { compatibility: 'ie8' } ) )
-			.pipe( rename( { suffix: '.min' } ) )
-			.pipe( gulp.dest( './' ) )
-			.pipe( sourcemaps.write( '.' ) )
-			.on( 'end', function() {
-				console.log( 'Global admin CSS finished.' );
-			} );
+	return gulp.src( 'scss/**/*.scss' )
+		.pipe( sass( { outputStyle: 'expanded' } ).on( 'error', sass.logError ) )
+		.pipe( banner( '/*!\n'+
+			'* Do not modify this file directly.  It is compiled SASS code.\n'+
+			'*/\n'
+		) )
+		.pipe( autoprefixer() )
+		// Build *.css & sourcemaps
+		.pipe( sourcemaps.init() )
+		.pipe( sourcemaps.write( './' ) )
+		.pipe( rename( { dirname: 'css' } ) )
+		.pipe( gulp.dest( './' ) )
+		// Build *.min.css & sourcemaps
+		.pipe( cleanCSS( { compatibility: 'ie8' } ) )
+		.pipe( rename( { suffix: '.min' } ) )
+		.pipe( gulp.dest( './' ) )
+		.pipe( sourcemaps.write( '.' ) )
+		.on( 'end', function() {
+			console.log( 'Global admin CSS finished.' );
+		} );
 } );
 
 /*
-    Sass! (RTL)
+ Sass! (RTL)
  */
 gulp.task( 'old-sass:rtl', function() {
 	return gulp.src( 'scss/*.scss' )
@@ -242,15 +242,8 @@ gulp.task( 'old-sass:rtl', function() {
 } );
 
 /*
-	Shell commands
- */
-gulp.task( 'shell', shell.task( [
-	'echo hello'
-], { verbose: true } ) );
-
-/*
-	"Check" task
-	Search for strings and fail if found.
+ "Check" task
+ Search for strings and fail if found.
  */
 gulp.task( 'check:DIR', function() {
 	// __DIR__ is not available in PHP 5.2...
@@ -262,7 +255,7 @@ gulp.task( 'check:DIR', function() {
 } );
 
 /*
-	PHP Lint
+ PHP Lint
  */
 gulp.task( 'php:lint', function() {
 	return gulp.src( [ '!node_modules', '!node_modules/**', '*.php', '**/*.php' ] )
@@ -270,43 +263,56 @@ gulp.task( 'php:lint', function() {
 } );
 
 /*
-    PHP Unit
+ PHP Unit
  */
 gulp.task( 'php:unit', function() {
 	return gulp.src( 'phpunit.xml.dist' )
-		.pipe( phpunit( 'phpunit', { colors: 'disabled' } ) )
+		.pipe( phpunit( 'phpunit', { colors: 'disabled', stopOnError: true } ) )
 		.on( 'error', function( err ) {
 			util.log( util.colors.red( err ) );
+			process.exit( 1 );
 		} );
 } );
 
 /*
-	JS Hint
+ JS Hint
  */
 gulp.task( 'js:hint', function() {
 	return gulp.src( [
-		'_inc/*.js',
-		'modules/*.js',
-		'modules/**/*.js',
-		'!_inc/*.min.js',
-		'!modules/*.min.',
-		'!modules/**/*.min.js'
-	] )
+			'_inc/*.js',
+			'modules/*.js',
+			'modules/**/*.js',
+			'!_inc/*.min.js',
+			'!modules/*.min.',
+			'!modules/**/*.min.js'
+		] )
 		.pipe( jshint( '.jshintrc' ) )
-		.pipe( jshint.reporter('jshint-stylish') );
+		.pipe( jshint.reporter('jshint-stylish') )
+		.pipe( jshint.reporter('fail') );
 } );
 
 /*
-	JS qunit
+ JS qunit
  */
 gulp.task( 'js:qunit', function() {
 	return gulp.src( 'tests/qunit/**/*.html' )
 		.pipe( qunit() );
 });
 
+/**
+ * Runs the js tests for the React bits.
+ */
+gulp.task( 'react:test-client', function ( cb ) {
+	exec( 'npm run test-client', function ( err, stdout, stderr ) {
+		console.log( stdout );
+		console.log( stderr );
+		cb( err );
+	} );
+} );
+
 /*
-	I18n land
-*/
+ I18n land
+ */
 
 gulp.task( 'languages:get', function ( callback ) {
 	var process = spawn(
@@ -366,5 +372,4 @@ gulp.task( 'old-styles',   ['frontendcss', 'admincss', 'admincss:rtl', 'old-sass
 gulp.task( 'languages',    ['languages:get', 'languages:build', 'languages:cleanup'] );
 
 // travis CI tasks.
-gulp.task( 'travis:phpunit', ['php:unit'] );
-gulp.task( 'travis:js', ['js:hint', 'js:qunit'] );
+gulp.task( 'travis:js', ['react:build', 'js:hint', 'js:qunit', 'react:test-client'] );

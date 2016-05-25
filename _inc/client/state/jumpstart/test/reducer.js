@@ -22,7 +22,7 @@ describe( 'status reducer', () => {
 				type: 'JUMPSTART_ACTIVATE'
 			};
 			let stateOut = statusReducer( stateIn, action );
-			expect( stateOut.isJumpstarting ).to.be.true;
+			expect( stateOut.isJumpstarting ).to.be.false;
 		} );
 
 		it( 'should set isJumpstarting and showJumpStart to false when jumpstart activation suceeds', () => {
