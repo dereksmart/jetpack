@@ -274,9 +274,10 @@ gulp.task( 'php:lint', function() {
  */
 gulp.task( 'php:unit', function() {
 	return gulp.src( 'phpunit.xml.dist' )
-		.pipe( phpunit( 'phpunit', { colors: 'disabled', stopOnError: true } ) )
+		.pipe( phpunit( 'phpunit', { colors: 'disabled' } ) )
 		.on( 'error', function( err ) {
 			util.log( util.colors.red( err ) );
+			return process.exit( 1 )
 		} );
 } );
 
