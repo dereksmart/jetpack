@@ -22,12 +22,12 @@ env:
 
 matrix:
   include:
-   - php: hhvm
-     env: WP_VERSION=master
-     sudo: required
-     dist: trusty
-     group: edge
-     addons:
+  - php: hhvm
+    env: WP_VERSION=master
+    sudo: required
+    dist: trusty
+    group: edge
+    addons:
       apt:
         packages:
         - mysql-server-5.6
