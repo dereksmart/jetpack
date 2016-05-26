@@ -6,7 +6,7 @@ language: php
 # Setup a global environemnt and overide as needed
 env:
   global:
-    - WP_TRAVISCI=phpunit
+    - WP_TRAVISCI="phpunit --testdox"
 
 # Next we define our matrix of additional build configurations to test against.
 # The versions listed above will automatically create our first configuration,
