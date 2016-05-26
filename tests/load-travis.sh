@@ -1,6 +1,6 @@
 #!/bin/bash
 
-if [ "$WP_TRAVISCI" != "phpunit" ]; then
+if [ "$WP_TRAVISCI" != "phpunit --testdox" ]; then
 	gem install sass
 	gem install compass
 	nvm install 5
