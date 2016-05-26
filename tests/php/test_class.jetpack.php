@@ -169,6 +169,8 @@ EXPECTED;
 
 		add_filter( 'jetpack_implode_frontend_css', '__return_true' );
 
+		echo plugins_url( 'jetpack-carousel.css', __FILE__ );
+
 		// Enqueue some script on the $to_dequeue list
 		$style_handle = 'jetpack-carousel';
 		wp_enqueue_style( 'jetpack-carousel', plugins_url( 'jetpack-carousel.css', __FILE__ ) );
@@ -179,7 +181,7 @@ EXPECTED;
 		foreach ( $wp_styles->registered as $handle => $handle_obj ) {
 			if ( $style_handle === $handle ) {
 				$expected = ( defined( 'WP_DEBUG' ) && WP_DEBUG ) ? "<!-- `{$style_handle}` is included in the concatenated jetpack.css -->\r\n" : '';
-//				$this->assertEquals( $expected, get_echo( array( $wp_styles, 'do_item' ), array( $handle ) ) );
+				$this->assertEquals( $expected, get_echo( array( $wp_styles, 'do_item' ), array( $handle ) ) );
 			} elseif ( 'jetpack_css' === $handle ) {
 				$seen_bundle = true;
 			}
