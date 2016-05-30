@@ -419,17 +419,10 @@ class Jetpack_Core_Json_Api_Endpoints {
 	 * @return bool True if site is connected
 	 */
 	public static function jetpack_connection_status() {
-		return rest_ensure_response( array(
-				'isActive'  => Jetpack::is_active(),
-				'isStaging' => Jetpack::is_staging_site(),
-				'devMode'   => array(
-					'isActive' => Jetpack::is_development_mode(),
-					'constant' => defined( 'JETPACK_DEV_DEBUG' ) && JETPACK_DEV_DEBUG,
-					'url'      => site_url() && false === strpos( site_url(), '.' ),
-					'filter'   => apply_filters( 'jetpack_development_mode', false ),
-				),
-			)
-		);
+		if ( Jetpack::is_development_mode() ) {
+			return rest_ensure_response( 'dev' );
+		}
+		return Jetpack::is_active();
 	}
 
 	public static function recheck_ssl() {
@@ -1049,6 +1042,7 @@ class Jetpack_Core_Json_Api_Endpoints {
 				break;
 
 			case 'post_by_email_address':
+				$post_by_email = new Jetpack_Post_By_Email();
 				if ( 'create' == $value ) {
 					$result = self::_process_post_by_email(
 						'jetpack.createPostByEmailAddress',
@@ -2272,7 +2266,7 @@ class Jetpack_Core_Json_Api_Endpoints {
 		}
 
 		// If the module is inactive, load the class to use the method.
-		if ( ! did_action( 'jetpack_module_loaded_' . $module ) ) {
+		if ( ! Jetpack::is_module_active( $module ) ) {
 			// Class can't be found so do nothing.
 			if ( ! @include( Jetpack::get_module_path( $module ) ) ) {
 				return false;

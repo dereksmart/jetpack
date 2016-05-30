@@ -4,6 +4,7 @@
 import React from 'react';
 import { connect } from 'react-redux';
 import FoldableCard from 'components/foldable-card';
+import { ModuleToggle } from 'components/module-toggle';
 
 /**
  * Internal dependencies
@@ -16,8 +17,6 @@ import {
 	isDeactivatingModule,
 	getModule as _getModule
 } from 'state/modules';
-import { ModuleToggle } from 'components/module-toggle';
-import { MoreModulesSettings } from 'components/module-options/moduleoptions';
 
 export const Page = ( { toggleModule, isModuleActivated, isTogglingModule, getModule } ) => {
 	var cards = [
@@ -67,8 +66,7 @@ export const Page = ( { toggleModule, isModuleActivated, isTogglingModule, getMo
 				expandedSummary={ toggle }
 				clickableHeaderText={ true }
 			>
-				{ isModuleActivated( element[0] ) || 'scan' === element[0] ?
-					<MoreModulesSettings module={ getModule( element[0] ) } /> :
+				{ isModuleActivated( element[0] ) || 'scan' === element[0] ? renderSettings( getModule( element[0] ) ) :
 					// Render the long_description if module is deactivated
 					<div dangerouslySetInnerHTML={ renderLongDescription( getModule( element[0] ) ) } />
 				}
@@ -89,6 +87,17 @@ function renderLongDescription( module ) {
 	// Rationale behind returning an object and not just the string
 	// https://facebook.github.io/react/tips/dangerously-set-inner-html.html
 	return { __html: module.long_description };
+}
+
+function renderSettings( module ) {
+	switch ( module.module ) {
+		default:
+			return (
+				<div>
+					<a href={ module.configure_url }>Link to old settings</a>
+				</div>
+			);
+	}
 }
 
 export default connect(

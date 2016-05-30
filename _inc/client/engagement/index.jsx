@@ -4,6 +4,7 @@
 import React from 'react';
 import { connect } from 'react-redux';
 import FoldableCard from 'components/foldable-card';
+import { ModuleToggle } from 'components/module-toggle';
 import { translate as __ } from 'i18n-calypso';
 
 /**
@@ -17,15 +18,8 @@ import {
 	isDeactivatingModule,
 	getModule as _getModule
 } from 'state/modules';
-import { ModuleToggle } from 'components/module-toggle';
-import { EngagementModulesSettings } from 'components/module-options/moduleoptions';
 
-export const Page = ( props ) => {
-	let { toggleModule,
-		isModuleActivated,
-		isTogglingModule,
-		getModule
-	} = props;
+export const Page = ( { toggleModule, isModuleActivated, isTogglingModule, getModule } ) => {
 	/**
 	 * Array of modules that directly map to a card for rendering
 	 * @type {Array}
@@ -58,11 +52,10 @@ export const Page = ( props ) => {
 			}
 			clickableHeaderText={ true }
 		>
-			{ isModuleActivated( element[0] ) ?
-				<EngagementModulesSettings module={ getModule( element[0] ) } /> :
-				// Render the long_description if module is deactivated
-				<div dangerouslySetInnerHTML={ renderLongDescription( getModule( element[0] ) ) } />
-			}
+				{ isModuleActivated( element[0] ) ? renderSettings( getModule( element[0] ) ) :
+					// Render the long_description if module is deactivated
+					<div dangerouslySetInnerHTML={ renderLongDescription( getModule( element[0] ) ) } />
+				}
 			<p>
 				<a href={ element[3] } target="_blank">{ __( 'Learn More' ) }</a>
 			</p>
@@ -79,6 +72,35 @@ function renderLongDescription( module ) {
 	// Rationale behind returning an object and not just the string
 	// https://facebook.github.io/react/tips/dangerously-set-inner-html.html
 	return { __html: module.long_description };
+}
+
+function renderSettings( module ) {
+	switch ( module.module ) {
+		case 'stats':
+			return(
+				<div>
+					{ renderStatsSettings( module ) }
+					<a href={ module.configure_url }>{ __( 'Link to old settings' ) }</a>
+				</div>
+			);
+
+		case 'enhanced-distribution':
+		case 'sitemaps':
+			return null;
+
+		default:
+			return (
+				<div>
+					<a href={ module.configure_url }>{ __( 'Link to old settings' ) }</a>
+				</div>
+			);
+	}
+}
+
+function renderStatsSettings() {
+	return (
+		<div>Stats Settings</div>
+	);
 }
 
 export default connect(

@@ -28,16 +28,10 @@ export const WelcomeNotice = React.createClass( {
 		return (
 			<div>
 				<SimpleNotice
-					status="is-info"
+					status="is-success"
 					onClick={ this.props.dismissWelcomeNotice }
 				>
-					{
-						__( 'Welcome to your new Jetpack dashboard! Now you can quickly manage all of Jetpack’s great features from one central location. {{a}}Learn more (link to updated docs).{{/a}}', {
-							components: {
-								a:<a href={ 'https://jetpack.com/support/' } target="_blank" />
-							}
-						} )
-					}
+					Welcome to Jetpack in React! (this message is not complete)
 				</SimpleNotice>
 			</div>
 		);
@@ -59,10 +53,7 @@ export const DevVersionNotice = React.createClass( {
 			);
 
 			return (
-				<SimpleNotice 
-					showDismiss={ false }
-					status="is-basic"
-				>
+				<SimpleNotice showDismiss={ false }>
 					{ text }
 				</SimpleNotice>
 			);
@@ -87,10 +78,7 @@ export const StagingSiteNotice = React.createClass( {
 			);
 
 			return (
-				<SimpleNotice 
-					showDismiss={ false }
-					status="is-basic"
-				>
+				<SimpleNotice showDismiss={ false }>
 					{ text }
 				</SimpleNotice>
 			);
@@ -127,10 +115,7 @@ export const DevModeNotice = React.createClass( {
 			);
 
 			return (
-				<SimpleNotice 
-					showDismiss={ false }
-					status="is-basic"
-				>
+				<SimpleNotice showDismiss={ false }>
 					{ text }
 				</SimpleNotice>
 			);
@@ -163,7 +148,7 @@ export const ActionNotices = React.createClass( {
 				<div>
 					<SimpleNotice>
 						{ __( 'You have successfully disconnected Jetpack' ) }
-						<br />
+						<br/>
 						{
 							__(	'Would you tell us why? Just {{a}}answering two simple questions{{/a}} would help us improve Jetpack.',
 								{
