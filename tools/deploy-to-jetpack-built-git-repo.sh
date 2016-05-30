@@ -1,10 +1,10 @@
 #!/bin/bash
 
-JETPACK_GIT_DIR=$(dirname "$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )" )
-JETPACK_TMP_DIR="/tmp/jetpack"
-JETPACK_TMP_DIR_2="/tmp/jetpack2"
+CURRENT=$(dirname "$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )" )
+JETPACK_BUILT="/tmp/jetpack"
+CURRENT_BACKUP="/tmp/jetpack2"
 
-cd $JETPACK_GIT_DIR
+cd $CURRENT
 
 # Make sure we don't have uncommitted changes.
 if [[ -n $( git status -s --porcelain ) ]]; then
@@ -25,37 +25,40 @@ npm run build
 echo "Done"
 
 # Prep a home to drop our new files in. Just make it in /tmp so we can start fresh each time.
-rm -rf $JETPACK_TMP_DIR
-rm -rf $JETPACK_TMP_DIR_2
+rm -rf $JETPACK_BUILT
+rm -rf $CURRENT_BACKUP
 
 echo "Rsync'ing everything over from Git except for .git stuffs"
-rsync -r --exclude='*.git*' $JETPACK_GIT_DIR/* $JETPACK_TMP_DIR_2
+rsync -r --exclude='*.git*' $CURRENT/* $CURRENT_BACKUP
 echo "Done!"
 
 echo "Purging .po files"
-rm -f $JETPACK_TMP_DIR_2/languages/*.po
+rm -f $CURRENT_BACKUP/languages/*.po
 echo "Done!"
 
 echo "Purging paths included in .svnignore"
 # check .svnignore
-for file in $( cat "$JETPACK_GIT_DIR/.svnignore" 2>/dev/null ); do
-	rm -rf $JETPACK_TMP_DIR_2/$file
+for file in $( cat "$CURRENT/.svnignore" 2>/dev/null ); do
+	rm -rf $CURRENT_BACKUP/$file
 done
 echo "Done!"
 
 echo "Pulling and checking out to latest build of jetpack-built"
-git clone git@github.com:dereksmart/jetpack.git $JETPACK_TMP_DIR
+git clone git@github.com:dereksmart/jetpack.git $JETPACK_BUILT
 git checkout jetpack-built
 echo "Done!"
 
 echo "Rsync'ing everything over remote version"
-rsync -r $JETPACK_TMP_DIR_2/* $JETPACK_TMP_DIR
+rsync -r $CURRENT_BACKUP/* $JETPACK_BUILT
 echo "Done!"
 
-cd $JETPACK_TMP_DIR
+cd $JETPACK_BUILT
+
+echo "Get the status"
+git status
+echo "done"
 
 echo "Finally, Commiting and Pushing"
-git add .
 git commit -am 'New build'
-git push origin HEAD:jetpack-built
+git push
 echo "Done!"
