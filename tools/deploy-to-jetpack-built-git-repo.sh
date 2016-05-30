@@ -56,5 +56,5 @@ cd $JETPACK_TMP_DIR
 echo "Finally, Commiting and Pushing"
 git add .
 git commit -am 'New build'
-git push origin jetpack-built
+git push origin HEAD:jetpack-built
 echo "Done!"
