@@ -58,7 +58,16 @@ echo "Get the status"
 git status
 echo "done"
 
-echo "Finally, Commiting and Pushing"
+echo "Checkout and Add"
+git checkout jetpack-built
+git add .
+echo "done"
+
+echo "Get the status"
+git status
+echo "done"
+
+echo "Finally, commit and push"
 git commit -am 'New build'
 git push
 echo "Done!"
