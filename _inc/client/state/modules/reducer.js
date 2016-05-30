@@ -45,7 +45,7 @@ export const items = ( state = initialItemsState, action ) => {
 		case JETPACK_MODULE_UPDATE_OPTION_SUCCESS:
 			let module = state[ action.module ];
 			let newOptions = assign( {}, module.options, {
-				[ action.optionName ]: Object.assign( {}, module.options[ action.optionName ], {
+				[ action.optionName ]: assign( {}, module.options[ action.optionName ], {
 					current_value: action.optionValue
 				} )
 			} );
@@ -102,7 +102,7 @@ export const requests = ( state = initialRequestsState, action ) => {
 		case JETPACK_MODULE_UPDATE_OPTION:
 			return assign( {}, state, {
 				updatingOption: assign( {}, state.updatingOption, {
-					[ action.module ]: Object.assign( {}, get( state.updatingOption, action.module, {} ), {
+					[ action.module ]: assign( {}, get( state.updatingOption, action.module, {} ), {
 						[ action.option_name ]: true
 					} )
 				}
@@ -111,7 +111,7 @@ export const requests = ( state = initialRequestsState, action ) => {
 		case JETPACK_MODULE_UPDATE_OPTION_SUCCESS:
 			return assign( {}, state, {
 				updatingOption: assign( {}, state.updatingOption, {
-					[ action.module ]: Object.assign( {}, get( state.updatingOption, action.module, {} ), {
+					[ action.module ]: assign( {}, get( state.updatingOption, action.module, {} ), {
 						[ action.option_name ]: false
 					} )
 				}
@@ -163,11 +163,20 @@ export function isDeactivatingModule( state, name ) {
  * Returns true if we are currently making a request to update a module's option
  *
  * @param  {Object}  state  Global state tree
- * @param  {String}  name module name to check
+ * @param  {String}  module_slug slug of the module to check
+ * @param  {String}  option_name option key to check if currently updating
  * @return {Boolean}         Whether option is being updated on the module
  */
-export function isUpdatingModuleOption( state, name ) {
-	return state.jetpack.modules.requests.updatingOption[ name ] ? true : false;
+export function isUpdatingModuleOption( state, module_slug, option_name ) {
+	return get( state.jetpack.modules.requests.updatingOption, [ module_slug, option_name ], false );
+}
+
+export function getModuleOption( state, module_slug, option_name ) {
+	return get( state.jetpack.modules.items, [ module_slug, 'options', option_name, 'current_value' ], false );
+}
+
+export function getModuleOptionValidValues( state, module_slug, option_name ) {
+	return get( state.jetpack.modules.items, [ module_slug, 'options', option_name, 'enum' ], false );
 }
 
 /**
