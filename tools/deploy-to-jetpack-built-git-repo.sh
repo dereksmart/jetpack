@@ -13,7 +13,7 @@ if [[ -n $( git status -s --porcelain ) ]]; then
  	exit 1
 fi
 
-read -p "You are about to deploy a new build to the jetpack-react-built branch. Are you sure? [y/N]" -n 1 -r
+read -p "You are about to deploy a new build to the jetpack-built branch. Are you sure? [y/N]" -n 1 -r
 if [[ $REPLY != "y" && $REPLY != "Y" ]]
 then
     exit 1
