@@ -13,7 +13,7 @@ if [[ -n $( git status -s --porcelain ) ]]; then
  	exit 1
 fi
 
-read -p "You are about to deploy a new built to the jetpack-built repo. Are you sure? [y/N]" -n 1 -r
+read -p "You are about to deploy a new build to the jetpack-react-built branch. Are you sure? [y/N]" -n 1 -r
 if [[ $REPLY != "y" && $REPLY != "Y" ]]
 then
     exit 1
@@ -44,7 +44,7 @@ done
 echo "Done!"
 
 echo "Pulling latest build"
-git clone git@github.com:Automattic/jetpack-built.git $JETPACK_TMP_DIR
+git clone git@github.com:dereksmart/jetpack.git $JETPACK_TMP_DIR
 echo "Done!"
 
 echo "Rsync'ing everything over remote version"
@@ -56,5 +56,5 @@ cd $JETPACK_TMP_DIR
 echo "Finally, Commiting and Pushing"
 git add .
 git commit -am 'New build'
-git push origin master
+git push origin jetpack-built
 echo "Done!"
