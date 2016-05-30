@@ -44,8 +44,7 @@ done
 echo "Done!"
 
 echo "Pulling and checking out to latest build of jetpack-built"
-git clone git@github.com:dereksmart/jetpack.git $JETPACK_BUILT
-git checkout jetpack-built
+git clone -b jetpack-built --single-branch git@github.com:dereksmart/jetpack.git $JETPACK_BUILT
 echo "Done!"
 
 echo "Rsync'ing everything over remote version"
@@ -59,7 +58,6 @@ git status
 echo "done"
 
 echo "Checkout and Add"
-git checkout jetpack-built
 git add .
 echo "done"
 
@@ -69,5 +67,5 @@ echo "done"
 
 echo "Finally, commit and push"
 git commit -am 'New build'
-git push
+git push origin jetpack-built
 echo "Done!"
