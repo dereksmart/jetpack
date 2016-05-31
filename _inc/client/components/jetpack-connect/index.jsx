@@ -19,7 +19,7 @@ const JetpackConnect = React.createClass( {
 		return (
 			<div className="jp-jetpack-connect__container">
 				<h1 className="jp-jetpack-connect__container-title" title="Please connect Jetpack to WordPress.com">
-					{ __( 'Please Connect Jetpack' ) }
+					{ __( 'Please DONT Connect Jetpack' ) }
 				</h1>
 
 				<Card className="jp-jetpack-connect__cta">
