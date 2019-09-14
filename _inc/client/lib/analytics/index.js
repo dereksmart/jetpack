@@ -1,13 +1,15 @@
 /**
  * External dependencies
  */
-const debug = require( 'debug' )( 'dops:analytics' ),
-	assign = require( 'lodash/assign' );
+import debugFactory from 'debug';
+import { assign } from 'lodash';
 
 /**
  * Internal dependencies
  */
-const config = require( 'config' );
+import config from '../../config';
+
+const debug = debugFactory( 'dops:analytics' );
 let _superProps, _user;
 
 // Load tracking scripts
@@ -112,25 +114,22 @@ const analytics = {
 
 	tracks: {
 		recordEvent: function( eventName, eventProperties ) {
-			let superProperties;
-
 			eventProperties = eventProperties || {};
 
-			debug(
-				'Record event "%s" called with props %s',
-				eventName,
-				JSON.stringify( eventProperties )
-			);
 			if ( eventName.indexOf( 'akismet_' ) !== 0 && eventName.indexOf( 'jetpack_' ) !== 0 ) {
 				debug( '- Event name must be prefixed by "akismet_" or "jetpack_"' );
 				return;
 			}
 
 			if ( _superProps ) {
-				superProperties = _superProps.getAll();
-				debug( '- Super Props: %o', superProperties );
-				eventProperties = assign( eventProperties, superProperties );
+				debug( '- Super Props: %o', _superProps );
+				eventProperties = assign( eventProperties, _superProps );
 			}
+			debug(
+				'Record event "%s" called with props %s',
+				eventName,
+				JSON.stringify( eventProperties )
+			);
 
 			window._tkq.push( [ 'recordEvent', eventName, eventProperties ] );
 		},
@@ -244,4 +243,4 @@ const analytics = {
 	},
 };
 
-module.exports = analytics;
+export default analytics;

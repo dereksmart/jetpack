@@ -23,27 +23,71 @@ class WordAds {
 	 * @var array
 	 */
 	public static $ad_tag_ids = array(
-		'mrec'           => array(
+		'mrec'               => array(
 			'tag'    => '300x250_mediumrectangle',
 			'height' => '250',
 			'width'  => '300',
 		),
-		'lrec'           => array(
-			'tag'    => '336x280_largerectangle',
-			'height' => '280',
-			'width'  => '336',
-		),
-		'leaderboard'    => array(
+		'leaderboard'        => array(
 			'tag'    => '728x90_leaderboard',
 			'height' => '90',
 			'width'  => '728',
 		),
-		'wideskyscraper' => array(
+		'mobile_leaderboard' => array(
+			'tag'    => '320x50_mobileleaderboard',
+			'height' => '50',
+			'width'  => '320',
+		),
+		'wideskyscraper'     => array(
 			'tag'    => '160x600_wideskyscraper',
 			'height' => '600',
 			'width'  => '160',
 		),
 	);
+
+	/**
+	 * Mapping array of location slugs to placement ids
+	 *
+	 * @var array
+	 */
+	public static $ad_location_ids = array(
+		'top'           => 110,
+		'belowpost'     => 120,
+		'belowpost2'    => 130,
+		'sidebar'       => 140,
+		'widget'        => 150,
+		'gutenberg'     => 200,
+		'inline'        => 310,
+		'inline-plugin' => 320,
+	);
+
+	/**
+	 * Counter to enable unique, sequential section IDs for all amp-ad units
+	 *
+	 * @var int
+	 */
+	public static $amp_section_id = 1;
+
+	/**
+	 * Checks for AMP support and returns true iff active & AMP request
+	 * @return boolean True if supported AMP request
+	 *
+	 * @since 7.5.0
+	 */
+	public static function is_amp() {
+		return class_exists( 'Jetpack_AMP_Support' ) && Jetpack_AMP_Support::is_amp_request();
+	}
+
+	/**
+	 * Increment the AMP section ID and return the value
+	 *
+	 * @return int
+	 */
+	public static function get_amp_section_id() {
+		return self::$amp_section_id++;
+	}
+
+	public static $SOLO_UNIT_CSS = 'float:left;margin-right:5px;margin-top:0px;';
 
 	/**
 	 * Convenience function for grabbing options from params->options
@@ -63,12 +107,33 @@ class WordAds {
 	}
 
 	/**
+	 * Returns the ad tag property array for supported ad types.
+	 * @return array      array with ad tags
+	 *
+	 * @since 7.1.0
+	 */
+	function get_ad_tags() {
+		return self::$ad_tag_ids;
+	}
+
+	/**
+	 * Returns the solo css for unit
+	 * @return string the special css for solo units
+	 *
+	 * @since 7.1.0
+	 */
+	function get_solo_unit_css() {
+		return self::$SOLO_UNIT_CSS;
+	}
+
+	/**
 	 * Instantiate the plugin
 	 *
 	 * @since 4.5.0
 	 */
 	function __construct() {
-		add_action( 'init', array( $this, 'init' ) );
+		add_action( 'wp', array( $this, 'init' ) );
+		add_action( 'rest_api_init', array( $this, 'init' ) );
 	}
 
 	/**
@@ -77,20 +142,15 @@ class WordAds {
 	 * @since 4.5.0
 	 */
 	function init() {
-		// bail on infinite scroll
-		if ( self::is_infinite_scroll() ) {
-			return;
-		}
-
 		require_once WORDADS_ROOT . '/php/params.php';
 		$this->params = new WordAds_Params();
 
-		if ( is_admin() ) {
-			require_once WORDADS_ROOT . '/php/admin.php';
+		if ( $this->should_bail() || self::is_infinite_scroll() ) {
 			return;
 		}
 
-		if ( $this->should_bail() ) {
+		if ( is_admin() ) {
+			require_once WORDADS_ROOT . '/php/admin.php';
 			return;
 		}
 
@@ -173,15 +233,19 @@ class WordAds {
 		}
 
 		if ( $this->option( 'enable_header_ad', true ) ) {
-			switch ( get_stylesheet() ) {
-				case 'twentyseventeen':
-				case 'twentyfifteen':
-				case 'twentyfourteen':
-					add_action( 'wp_footer', array( $this, 'insert_header_ad_special' ) );
-					break;
-				default:
-					add_action( 'wp_head', array( $this, 'insert_header_ad' ), 100 );
-					break;
+			if ( self::is_amp() ) {
+				add_filter( 'the_content', array( $this, 'insert_header_ad_amp' ) );
+			} else {
+				switch ( get_stylesheet() ) {
+					case 'twentyseventeen':
+					case 'twentyfifteen':
+					case 'twentyfourteen':
+						add_action( 'wp_footer', array( $this, 'insert_header_ad_special' ) );
+						break;
+					default:
+						add_action( 'wp_head', array( $this, 'insert_header_ad' ), 100 );
+						break;
+				}
 			}
 		}
 	}
@@ -206,6 +270,9 @@ class WordAds {
 	 * @return [type] [description]
 	 */
 	function insert_head_meta() {
+		if ( self::is_amp() ) {
+			return;
+		}
 		$themename = esc_js( get_stylesheet() );
 		$pagetype  = intval( $this->params->get_page_type_ipw() );
 		$data_tags = ( $this->params->cloudflare ) ? ' data-cfasync="false"' : '';
@@ -228,6 +295,9 @@ HTML;
 	 * @since 4.5.0
 	 */
 	function insert_head_iponweb() {
+		if ( self::is_amp() ) {
+			return;
+		}
 		$data_tags = ( $this->params->cloudflare ) ? ' data-cfasync="false"' : '';
 		echo <<<HTML
 		<link rel='dns-prefetch' href='//s.pubmine.com' />
@@ -363,11 +433,30 @@ HTML;
 
 		$ad_type = $this->option( 'wordads_house' ) ? 'house' : 'iponweb';
 		echo $this->get_ad( 'top', $ad_type );
-		echo <<<HTML
+		if ( ! self::is_amp() ) {
+			echo <<<HTML
 		<script type="text/javascript">
 			jQuery('.wpcnt-header').insertBefore('$selector');
 		</script>
 HTML;
+		}
+	}
+
+	/**
+	 * Header unit for AMP
+	 *
+	 * @param string $content Content of the page.
+	 *
+	 * @since 7.5.0
+	 */
+	public function insert_header_ad_amp( $content ) {
+
+		$ad_type = $this->option( 'wordads_house' ) ? 'house' : 'iponweb';
+		if ( 'house' === $ad_type ) {
+			return $content;
+		}
+		return $this->get_ad( 'top_amp', $ad_type ) . $content;
+
 	}
 
 	/**
@@ -415,14 +504,19 @@ HTML;
 				$width      = 300;
 				$height     = 250;
 
-				$snippet = $this->get_ad_snippet( $section_id, $height, $width, $spot, 'float:left;margin-right:5px;margin-top:0px;' );
+				$snippet = $this->get_ad_snippet( $section_id, $height, $width, $spot, self::$SOLO_UNIT_CSS );
 				if ( $this->option( 'wordads_second_belowpost', true ) ) {
 					$section_id2 = 0 === $this->params->blog_id ? WORDADS_API_TEST_ID2 : $this->params->blog_id . '4';
-					$snippet    .= $this->get_ad_snippet( $section_id2, $height, $width, $spot, 'float:left;margin-top:0px;' );
+					$snippet    .= $this->get_ad_snippet( $section_id2, $height, $width, $spot . '2', 'float:left;margin-top:0px;' );
 				}
 			} elseif ( 'inline' === $spot ) {
 				$section_id = 0 === $this->params->blog_id ? WORDADS_API_TEST_ID : $this->params->blog_id . '5';
-				$snippet    = $this->get_ad_snippet( $section_id, $height, $width, $spot, 'mrec', 'float:left;margin-right:5px;margin-top:0px;' );
+				$snippet    = $this->get_ad_snippet( $section_id, $height, $width, $spot, self::$SOLO_UNIT_CSS );
+			} elseif ( 'top_amp' === $spot ) {
+				// 320x50 unit which can safely be inserted below title, above content in a variety of themes.
+				$width   = 320;
+				$height  = 50;
+				$snippet = $this->get_ad_snippet( null, $height, $width );
 			}
 		} elseif ( 'house' == $type ) {
 			$leaderboard = 'top' == $spot && ! $this->params->mobile_device;
@@ -432,18 +526,7 @@ HTML;
 			}
 		}
 
-		$header = 'top' == $spot ? 'wpcnt-header' : '';
-		$about  = __( 'Advertisements', 'jetpack' );
-		return <<<HTML
-		<div class="wpcnt $header">
-			<div class="wpa">
-				<span class="wpa-about">$about</span>
-				<div class="u $spot">
-					$snippet
-				</div>
-			</div>
-		</div>
-HTML;
+		return $this->get_ad_div( $spot, $snippet );
 	}
 
 
@@ -459,18 +542,35 @@ HTML;
 	 *
 	 * @since 5.7
 	 */
-	function get_ad_snippet( $section_id, $height, $width, $location = '', $css = '' ) {
+	public function get_ad_snippet( $section_id, $height, $width, $location = '', $css = '' ) {
 		$this->ads[] = array(
 			'location' => $location,
 			'width'    => $width,
 			'height'   => $height,
 		);
-		$ad_number   = count( $this->ads );
-		// Max 6 ads per page.
-		if ( $ad_number > 5 && 'top' !== $location ) {
-			return;
+
+		if ( self::is_amp() ) {
+			$height         = esc_attr( $height + 15 ); // this will ensure enough padding for "Report this ad"
+			$width          = esc_attr( $width );
+			$amp_section_id = esc_attr( self::get_amp_section_id() );
+			$site_id        = esc_attr( $this->params->blog_id );
+			return <<<HTML
+			<amp-ad width="$width" height="$height"
+			    type="pubmine"
+			    data-siteid="$site_id"
+			    data-section="$amp_section_id">
+			</amp-ad>
+HTML;
 		}
+
+		$ad_number = count( $this->ads ) . '-' . uniqid();
 		$data_tags = $this->params->cloudflare ? ' data-cfasync="false"' : '';
+		$css = esc_attr( $css );
+
+		$loc_id = 100;
+		if ( ! empty( self::$ad_location_ids[ $location ] ) ) {
+			$loc_id = self::$ad_location_ids[ $location ];
+		}
 
 		return <<<HTML
 		<div style="padding-bottom:15px;width:{$width}px;height:{$height}px;$css">
@@ -480,12 +580,47 @@ HTML;
 					__ATA.initSlot('atatags-{$ad_number}',  {
 						collapseEmpty: 'before',
 						sectionId: '{$section_id}',
-						location: '{$location}',
+						location: {$loc_id},
 						width: {$width},
 						height: {$height}
 					});
 				});
 				</script>
+			</div>
+		</div>
+HTML;
+	}
+
+	/**
+	 * Returns the complete ad div with snippet to be inserted into the page
+	 *
+	 * @param  string  $spot top, side, inline, or belowpost
+	 * @param  string  $snippet The snippet to insert into the div
+	 * @param  array  $css_classes
+	 * @return string The supporting ad unit div
+	 *
+	 * @since 7.1
+	 */
+	function get_ad_div( $spot, $snippet, array $css_classes = array() ) {
+		if ( empty( $css_classes ) ) {
+			$css_classes = array();
+		}
+
+		$css_classes[] = 'wpcnt';
+		if ( 'top' == $spot ) {
+			$css_classes[] = 'wpcnt-header';
+		}
+
+		$spot = esc_attr( $spot );
+		$classes = esc_attr( implode( ' ', $css_classes ) );
+		$about  = esc_html__( 'Advertisements', 'jetpack' );
+		return <<<HTML
+		<div class="$classes">
+			<div class="wpa">
+				<span class="wpa-about">$about</span>
+				<div class="u $spot">
+					$snippet
+				</div>
 			</div>
 		</div>
 HTML;

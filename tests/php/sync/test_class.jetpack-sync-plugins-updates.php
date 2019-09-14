@@ -1,5 +1,7 @@
 <?php
 
+use Automattic\Jetpack\Constants;
+
 if ( ! class_exists( 'WP_Test_Jetpack_Sync_Plugins' ) ) {
 	$sync_dir        = dirname( __FILE__ );
 	require_once $sync_dir . '/test_class.jetpack-sync-plugins.php';
@@ -13,9 +15,6 @@ class WP_Test_Jetpack_Sync_Plugins_Updates extends WP_Test_Jetpack_Sync_Base {
 		parent::setUp();
 
 		require ABSPATH . 'wp-includes/version.php';
-		if ( defined( 'PHP_VERSION_ID' ) && PHP_VERSION_ID < 50300 ) {
-			$this->markTestIncomplete( "Right now this doesn't work on PHP 5.2" );
-		}
 
 		if (
 			version_compare( $wp_version, '4.9.0', '<' )
@@ -30,7 +29,7 @@ class WP_Test_Jetpack_Sync_Plugins_Updates extends WP_Test_Jetpack_Sync_Base {
 
 	public function tearDown() {
 		parent::tearDown();
-		Jetpack_Constants::clear_constants();
+		Constants::clear_constants();
 	}
 
 	public static function setUpBeforeClass() {
@@ -48,10 +47,18 @@ class WP_Test_Jetpack_Sync_Plugins_Updates extends WP_Test_Jetpack_Sync_Base {
 	}
 
 	public function test_updating_a_plugin_is_synced() {
+		$plugin_defaults = array(
+			'title'  => '',
+			'url'    => '',
+			'nonce'  => '',
+			'plugin' => '',
+			'api'    => '',
+		);
+
 		$skins = array(
-			new Plugin_Upgrader_Skin( compact( 'title', 'url', 'nonce', 'plugin', 'api' ) ),
-			new Automatic_Upgrader_Skin( compact( 'title', 'url', 'nonce', 'plugin', 'api' ) ),
-			new WP_Ajax_Upgrader_Skin( compact( 'title', 'url', 'nonce', 'plugin', 'api' )  ),
+			new Plugin_Upgrader_Skin( $plugin_defaults ),
+			new Automatic_Upgrader_Skin( $plugin_defaults ),
+			new WP_Ajax_Upgrader_Skin( $plugin_defaults ),
 		);
 		foreach( $skins as $skin ) {
 			$this->update_the_plugin( $skin );
@@ -64,11 +71,18 @@ class WP_Test_Jetpack_Sync_Plugins_Updates extends WP_Test_Jetpack_Sync_Base {
 	}
 
 	public function test_updating_plugin_in_bulk_is_synced() {
+		$plugin_defaults = array(
+			'title'  => '',
+			'url'    => '',
+			'nonce'  => '',
+			'plugin' => '',
+			'api'    => '',
+		);
 		$skins = array(
-			new Plugin_Upgrader_Skin( compact( 'title', 'url', 'nonce', 'plugin', 'api' ) ),
-			new Automatic_Upgrader_Skin( compact( 'title', 'url', 'nonce', 'plugin', 'api' ) ),
-			new WP_Ajax_Upgrader_Skin( compact( 'title', 'url', 'nonce', 'plugin', 'api' )  ),
-			new Bulk_Plugin_Upgrader_Skin( compact( 'nonce', 'url' ) ),
+			new Plugin_Upgrader_Skin( $plugin_defaults ),
+			new Automatic_Upgrader_Skin( $plugin_defaults ),
+			new WP_Ajax_Upgrader_Skin( $plugin_defaults ),
+			new Bulk_Plugin_Upgrader_Skin( $plugin_defaults ),
 		);
 		foreach ( $skins as $skin ) {
 			$this->update_bulk_plugins( $skin );
@@ -84,13 +98,20 @@ class WP_Test_Jetpack_Sync_Plugins_Updates extends WP_Test_Jetpack_Sync_Base {
 		 * in WP Plugin_Upgrader->update() doesn't fire the upgrader_process_complete action
 		 * when it encounters an error so right now we do not have a way to hook into why a plugin failed.
 		 */
-		$this->markTestIncomplete( "Right now this doesn't work on PHP 5.2" );
+		$this->markTestIncomplete( "Right now this doesn't work." );
 
 		$this->server_event_storage->reset();
+		$plugin_defaults = array(
+			'title'  => '',
+			'url'    => '',
+			'nonce'  => '',
+			'plugin' => '',
+			'api'    => '',
+		);
 		$skins = array(
-			new Plugin_Upgrader_Skin( compact( 'title', 'url', 'nonce', 'plugin', 'api' ) ),
-			new Automatic_Upgrader_Skin( compact( 'title', 'url', 'nonce', 'plugin', 'api' ) ),
-			new WP_Ajax_Upgrader_Skin( compact( 'title', 'url', 'nonce', 'plugin', 'api' )  ),
+			new Plugin_Upgrader_Skin( $plugin_defaults ),
+			new Automatic_Upgrader_Skin( $plugin_defaults ),
+			new WP_Ajax_Upgrader_Skin( $plugin_defaults ),
 		);
 		foreach( $skins as $skin ) {
 			$this->set_error();
@@ -104,11 +125,18 @@ class WP_Test_Jetpack_Sync_Plugins_Updates extends WP_Test_Jetpack_Sync_Base {
 	}
 
 	public function test_updating_plugin_error_in_bulk_is_synced() {
+		$plugin_defaults = array(
+			'title'  => '',
+			'url'    => '',
+			'nonce'  => '',
+			'plugin' => '',
+			'api'    => '',
+		);
 		$skins = array(
-			new Plugin_Upgrader_Skin( compact( 'title', 'url', 'nonce', 'plugin', 'api' ) ),
-			new Automatic_Upgrader_Skin( compact( 'title', 'url', 'nonce', 'plugin', 'api' ) ),
-			new WP_Ajax_Upgrader_Skin( compact( 'title', 'url', 'nonce', 'plugin', 'api' )  ),
-			new Bulk_Plugin_Upgrader_Skin( compact( 'nonce', 'url' ) ),
+			new Plugin_Upgrader_Skin( $plugin_defaults ),
+			new Automatic_Upgrader_Skin( $plugin_defaults ),
+			new WP_Ajax_Upgrader_Skin( $plugin_defaults ),
+			new Bulk_Plugin_Upgrader_Skin( $plugin_defaults ),
 		);
 		foreach ( $skins as $skin ) {
 			$this->set_error();
@@ -122,10 +150,18 @@ class WP_Test_Jetpack_Sync_Plugins_Updates extends WP_Test_Jetpack_Sync_Base {
 	}
 
 	function test_updating_error_with_autoupdate_constant_results_in_proper_state() {
-		Jetpack_Constants::set_constant( 'JETPACK_PLUGIN_AUTOUPDATE', true );
+		$plugin_defaults = array(
+			'title'  => '',
+			'url'    => '',
+			'nonce'  => '',
+			'plugin' => '',
+			'api'    => '',
+		);
+
+		Constants::set_constant( 'JETPACK_PLUGIN_AUTOUPDATE', true );
 
 		$this->set_error();
-		$this->update_bulk_plugins( new WP_Ajax_Upgrader_Skin( compact( 'title', 'url', 'nonce', 'plugin', 'api' ) ) );
+		$this->update_bulk_plugins( new WP_Ajax_Upgrader_Skin( $plugin_defaults ) );
 		$this->remove_error();
 		$this->sender->do_sync();
 		$updated_plugin = $this->server_event_storage->get_most_recent_event( 'jetpack_plugin_update_failed' );
@@ -134,8 +170,16 @@ class WP_Test_Jetpack_Sync_Plugins_Updates extends WP_Test_Jetpack_Sync_Base {
 	}
 
 	function test_updating_with_autoupdate_constant_results_in_proper_state() {
-		Jetpack_Constants::set_constant( 'JETPACK_PLUGIN_AUTOUPDATE', true );
-		$this->update_bulk_plugins( new WP_Ajax_Upgrader_Skin( compact( 'title', 'url', 'nonce', 'plugin', 'api' ) ) );
+		$plugin_defaults = array(
+			'title'  => '',
+			'url'    => '',
+			'nonce'  => '',
+			'plugin' => '',
+			'api'    => '',
+		);
+
+		Constants::set_constant( 'JETPACK_PLUGIN_AUTOUPDATE', true );
+		$this->update_bulk_plugins( new WP_Ajax_Upgrader_Skin( $plugin_defaults ) );
 		$this->sender->do_sync();
 		$updated_plugin = $this->server_event_storage->get_most_recent_event( 'jetpack_plugins_updated' );
 		$this->assertTrue( $updated_plugin->args[1]['is_autoupdate'] );

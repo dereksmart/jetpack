@@ -8,7 +8,7 @@ import { connect } from 'react-redux';
 import SimpleNotice from 'components/notice';
 import { translate as __ } from 'i18n-calypso';
 import Button from 'components/button';
-import includes from 'lodash/includes';
+import { includes } from 'lodash';
 import analytics from 'lib/analytics';
 
 /**
@@ -34,6 +34,7 @@ export class DashItem extends Component {
 		pro: PropTypes.bool,
 		isModule: PropTypes.bool,
 		support: PropTypes.object,
+		overrideContent: PropTypes.element,
 	};
 
 	static defaultProps = {
@@ -42,6 +43,20 @@ export class DashItem extends Component {
 		pro: false,
 		isModule: true,
 		support: { text: '', link: '' },
+	};
+
+	toggleModule = () => {
+		const { updateOptions, module, getOptionValue } = this.props;
+
+		updateOptions( { [ module ]: ! getOptionValue( module ) } );
+	};
+
+	trackPaidBtnClick = () => {
+		analytics.tracks.recordJetpackClick( {
+			target: 'paid-button',
+			feature: this.props.module,
+			page: 'aag',
+		} );
 	};
 
 	render() {
@@ -55,31 +70,22 @@ export class DashItem extends Component {
 			this.props.disabled ? 'jp-dash-item__disabled' : ''
 		);
 
-		const toggleModule = () =>
-				this.props.updateOptions( {
-					[ this.props.module ]: ! this.props.getOptionValue( this.props.module ),
-				} ),
-			trackPaidBtnClick = () => {
-				analytics.tracks.recordJetpackClick( {
-					target: 'paid-button',
-					feature: this.props.module,
-					page: 'aag',
-				} );
-			};
-
 		if ( '' !== this.props.module ) {
 			toggle =
-				includes(
+				( includes(
 					[ 'monitor', 'protect', 'photon', 'vaultpress', 'scan', 'backups', 'akismet', 'search' ],
 					this.props.module
-				) && this.props.isDevMode ? (
+				) &&
+					this.props.isDevMode ) ||
+				// Avoid toggle for manage as it's no longer a module
+				'manage' === this.props.module ? (
 					''
 				) : (
 					<ModuleToggle
 						slug={ this.props.module }
 						activated={ this.props.getOptionValue( this.props.module ) }
 						toggling={ this.props.isUpdating( this.props.module ) }
-						toggleModule={ toggleModule }
+						toggleModule={ this.toggleModule }
 						compact={ true }
 					/>
 				);
@@ -112,7 +118,7 @@ export class DashItem extends Component {
 
 		if ( this.props.pro && ! this.props.isDevMode ) {
 			proButton = (
-				<Button onClick={ trackPaidBtnClick } compact={ true } href="#/plans">
+				<Button onClick={ this.trackPaidBtnClick } compact={ true } href="#/plans">
 					{ __( 'Paid', {
 						context: 'Short label appearing near a paid feature configuration block.',
 					} ) }
@@ -135,14 +141,18 @@ export class DashItem extends Component {
 				<SectionHeader label={ this.props.label } cardBadge={ proButton }>
 					{ this.props.userCanToggle ? toggle : '' }
 				</SectionHeader>
-				<Card className="jp-dash-item__card" href={ this.props.href }>
-					<div className="jp-dash-item__content">
-						{ this.props.support.link && (
-							<SupportInfo module={ module } { ...this.props.support } />
-						) }
-						{ this.props.children }
-					</div>
-				</Card>
+				{ this.props.overrideContent ? (
+					this.props.overrideContent
+				) : (
+					<Card className="jp-dash-item__card" href={ this.props.href }>
+						<div className="jp-dash-item__content">
+							{ this.props.support.link && (
+								<SupportInfo module={ module } { ...this.props.support } />
+							) }
+							{ this.props.children }
+						</div>
+					</Card>
+				) }
 			</div>
 		);
 	}

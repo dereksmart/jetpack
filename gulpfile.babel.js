@@ -2,11 +2,10 @@
  * External dependencies
  */
 import del from 'del';
-import deleteLines from 'gulp-delete-lines';
+import deleteLines from 'gulp-rm-lines';
 import fs from 'fs';
 import gulp from 'gulp';
 import i18n_calypso from 'i18n-calypso/cli';
-import jshint from 'gulp-jshint';
 import json_transform from 'gulp-json-transform';
 import log from 'fancy-log';
 import po2json from 'gulp-po2json';
@@ -21,35 +20,15 @@ import { spawn } from 'child_process';
 const meta = require( './package.json' );
 import frontendcss from './tools/builder/frontend-css';
 import admincss from './tools/builder/admin-css';
+import { watch as react_watch, build as react_build } from './tools/builder/react';
 import {
-    watch as react_watch,
-    build as react_build
-} from './tools/builder/react';
-import {
-    watch as sass_watch,
-    build as sass_build
+	watch as sass_watch,
+	build as sass_build,
+	watchPackages as sass_watch_packages,
 } from './tools/builder/sass';
 
 gulp.task( 'old-styles:watch', function() {
 	return gulp.watch( 'scss/**/*.scss', gulp.parallel( 'old-styles' ) );
-} );
-
-/*
-	JS Hint
- */
-gulp.task( 'js:hint', function() {
-	return gulp.src( [
-		'_inc/*.js',
-		'modules/*.js',
-		'modules/**/*.js',
-		'!_inc/*.min.js',
-		'!modules/*.min.',
-		'!modules/**/*.min.js',
-		'!**/*/*block.js',
-	] )
-		.pipe( jshint( '.jshintrc' ) )
-		.pipe( jshint.reporter( 'jshint-stylish' ) )
-		.pipe( jshint.reporter( 'fail' ) );
 } );
 
 /*
@@ -58,14 +37,11 @@ gulp.task( 'js:hint', function() {
 
 // Should not be run independently, run gulp languages instead
 gulp.task( 'languages:get', function( callback ) {
-	const process = spawn(
-		'php',
-		[
-			'tools/export-translations.php',
-			'.',
-			'https://translate.wordpress.org/projects/wp-plugins/jetpack/dev'
-		]
-	);
+	const process = spawn( 'php', [
+		'tools/export-translations.php',
+		'.',
+		'https://translate.wordpress.org/projects/wp-plugins/jetpack/dev',
+	] );
 
 	process.stderr.on( 'data', function( data ) {
 		log( data.toString() );
@@ -102,56 +78,69 @@ gulp.task( 'languages:build', function( done ) {
 		terms[ context + '\u0004' + term ] = '';
 	};
 
-	gulp.src( [ '_inc/jetpack-strings.php' ] )
-		.pipe( deleteLines( {
-			filters: [ /<\?php/ ]
-		} ) )
+	gulp
+		.src( [ '_inc/jetpack-strings.php' ] )
+		.pipe(
+			deleteLines( {
+				filters: [ /<\?php/ ],
+			} )
+		)
 		.pipe( rename( 'jetpack-strings.js' ) )
 		.pipe( gulp.dest( '_inc' ) )
 		.on( 'end', function() {
 			// Requiring the file that will call __, _x and _n
 			require( './_inc/jetpack-strings.js' );
 
-			return gulp.src( [ 'languages/*.po' ] )
-				.pipe( po2json( {
-					format: 'jed1.x',
-					domain: 'jetpack',
-				} ) )
-				.pipe( json_transform( function( data ) {
-					const localeData = data.locale_data.jetpack;
-					const filtered = {
-						'': localeData[ '' ]
-					};
+			return (
+				gulp
+					.src( [ 'languages/*.po' ] )
+					.pipe(
+						po2json( {
+							format: 'jed1.x',
+							domain: 'jetpack',
+						} )
+					)
+					.pipe(
+						json_transform( function( data ) {
+							const localeData = data.locale_data.jetpack;
+							const filtered = {
+								'': localeData[ '' ],
+							};
 
-					Object.keys( localeData ).forEach( function( term ) {
-						if ( terms.hasOwnProperty( term ) ) {
-							filtered[ term ] = localeData[ term ];
+							Object.keys( localeData ).forEach( function( term ) {
+								if ( terms.hasOwnProperty( term ) ) {
+									filtered[ term ] = localeData[ term ];
 
-							// Having a &quot; in the JSON might cause errors with the JSON later
-							if ( typeof filtered[ term ] === 'string' ) {
-								filtered[ term ] = filtered[ term ].replace( '&quot;', '\"' );
-							}
-						}
-					} );
+									// Having a &quot; in the JSON might cause errors with the JSON later
+									if ( typeof filtered[ term ] === 'string' ) {
+										filtered[ term ] = filtered[ term ].replace( '&quot;', '"' );
+									}
+								}
+							} );
 
-					return filtered;
-				} ) )
-				.pipe( gulp.dest( 'languages/json/' ) )
-				.on( 'end', function() {
-					fs.unlinkSync( './_inc/jetpack-strings.js' );
-					done();
-				} );
+							return {
+								locale_data: {
+									jetpack: filtered,
+								},
+							};
+						} )
+					)
+
+					// WordPress 5.0 uses md5 hashes of file paths to associate translation
+					// JSON files with the file they should be included for. This is an md5
+					// of '_inc/build/admin.js'.
+					.pipe( rename( { suffix: '-1bac79e646a8bf4081a5011ab72d5807' } ) )
+					.pipe( gulp.dest( 'languages/json/' ) )
+					.on( 'end', function() {
+						fs.unlinkSync( './_inc/jetpack-strings.js' );
+						done();
+					} )
+			);
 		} );
 } );
 
 gulp.task( 'php:module-headings', function( callback ) {
-	const process = spawn(
-		'php',
-		[
-			'tools/build-module-headings-translations.php'
-		]
-	);
-
+	const process = spawn( 'php', [ 'tools/build-module-headings-translations.php' ] );
 	process.stderr.on( 'data', function( data ) {
 		log( data.toString() );
 	} );
@@ -197,15 +186,18 @@ gulp.task( 'languages:cleanup', function( done ) {
 gulp.task( 'languages:extract', function( done ) {
 	const paths = [];
 
-	gulp.src( [
-		'_inc/client/**/*.js',
-		'_inc/client/**/*.jsx',
-		'_inc/blocks/*.js',
-		'_inc/blocks/**/*.js'
-	] )
-		.pipe( tap( function( file ) {
-			paths.push( file.path );
-		} ) )
+	return gulp
+		.src( [
+			'_inc/client/**/*.js',
+			'_inc/client/**/*.jsx',
+			'_inc/blocks/*.js',
+			'_inc/blocks/**/*.js',
+		] )
+		.pipe(
+			tap( function( file ) {
+				paths.push( file.path );
+			} )
+		)
 		.on( 'end', function() {
 			i18n_calypso( {
 				projectName: 'Jetpack',
@@ -214,44 +206,35 @@ gulp.task( 'languages:extract', function( done ) {
 				phpArrayName: 'jetpack_strings',
 				format: 'PHP',
 				textdomain: 'jetpack',
-				keywords: [ 'translate', '__', '_n', '_x', '_nx' ]
+				keywords: [ 'translate', '__', '_n', '_x', '_nx' ],
 			} );
 
 			done();
 		} );
 } );
 
-/*
- * Gutenberg Blocks for Jetpack
- */
-gulp.task( 'gutenberg:blocks', function() {
-	return gulp.src( [ 'node_modules/@automattic/jetpack-blocks/build/**/*' ] )
-		.pipe( gulp.dest( '_inc/blocks' ) );
-} );
-
-gulp.task( 'old-styles', gulp.parallel( frontendcss, admincss, 'sass:old' ) );
-gulp.task( 'jshint', gulp.parallel( 'js:hint' ) );
+gulp.task( 'old-styles', gulp.parallel( frontendcss, admincss, 'sass:old', 'sass:packages' ) );
 
 // Default task
 gulp.task(
 	'default',
-	gulp.parallel( react_build, sass_build, 'old-styles', 'js:hint', 'php:module-headings', 'gutenberg:blocks' )
+	gulp.series( gulp.parallel( react_build, 'old-styles', 'php:module-headings' ), sass_build )
 );
 gulp.task(
 	'watch',
-	gulp.parallel( react_watch, sass_watch, 'old-styles:watch' )
+	gulp.parallel( react_watch, sass_watch, sass_watch_packages, 'old-styles:watch' )
 );
 
 // Keeping explicit task names to allow for individual runs
 gulp.task( 'sass:build', sass_build );
 gulp.task( 'react:build', react_build );
-gulp.task( 'sass:watch', sass_watch );
+gulp.task( 'sass:watch', gulp.parallel( sass_watch, sass_watch_packages ) );
 gulp.task( 'react:watch', react_watch );
 
 gulp.task(
 	'languages',
 	gulp.parallel(
-		gulp.series( 'languages:get', 'languages:build', 'languages:cleanup' ),
-		'languages:extract'
+		gulp.series( 'languages:extract' ),
+		gulp.series( 'languages:get', 'languages:build', 'languages:cleanup' )
 	)
 );

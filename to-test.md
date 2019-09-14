@@ -1,81 +1,50 @@
-## 6.9
+## 7.7
 
-### Admin Page
+### Jetpack Connection
 
-We've made several changes to the Admin Page in this release. This will have a big impact on new and existing Jetpack users alike. It impacts multiple screens and flows:
+In this release, we've made multiple changes to the connection process in order to make more reliable. Do not hesitate to report any issues you may experience when you connect your test site to WordPress.com.
 
-- You will notice changes when heading to Jetpack > Dashboard right after activating the plugin.
-- You will notice a new card when coming back to your dashboard right after connecting the plugin to your WordPress.com account.
-- You will notice some changes in the modals that are displayed in the Jetpack dashboard when coming back to your site after purchasing a plan.
-- You will find a new "My Plan" section in the Jetpack dashboard.
-- The sections and cards under Jetpack > Settings were also reorganized.
-- We've starting working on improving the different notices that are displayed to you when changing settings.
-- We've updated the message displayed to users who have not linked their own WordPress.com account on a site that is already using Jetpack.
+#### Transfer Jetpack ownership to another admin
 
-To test this, try navigating through all those screens as a new site owner:
+We've also added a new notice to the Users screen, to warn admins that are about to delete another admin user, when that user happens to be the main Jetpack admin on the site. We then offer that admin the option to transfer the Jetpack connection before to delete the user.
 
-- Can you dismiss / use all action buttons?
-- Can you find all sections and features you are looking for?
-- Can you easily upgrade to a new plan?
-- Can you toggle the different settings in the new "Performance" section?
-- Do you spot any typos or mistakes in the texts that were added to the different screens?
+To test this:
 
-### Block Editor
+1. On your connected site, go to the Users Menu.
+2. Add a new admin user to the site - let'a call it User B.
+3. In a separate (incognito?) window, log into the site as User B.
+4. Go to the Jetpack dashboard and connect User B to WordPress.com.
+5. Still logged in as User B, go to the users page.
+6. Click to delete the main user.
+    - You should be taken to a confirmation page to delete, where you should see a new notice inviting you to transfer Jetpack ownership.
 
-This release introduces new blocks we'd like you to test:
+### Jetpack Videos
 
-**Subscription block**
+We've added extra settings to the Video block. To test this, try the following:
 
-This block allows your readers to subscribe to your site, and will be available in the block editor if the Subscriptions feature is active on your site. To test it, try to activate the feature, and see if you can add the block, and use it to subscribe to your site.
+- Go to Media > Library and upload a video.
+- Purchase a paid plan
+- Enable the Video option under Jetpack > Settings > Performance
+- Go to Media > Library and upload a video.
+- Once it's converted, go to Posts > Add New.
+- In that new post, look for **the Video block**.
+- Look for the first video you've uploaded first, and try to use any of the settings in the block sidebar. Make sure they work well.
+- Then, insert an additional block with the second video, uploaded using Jetpack Videos. The video preview should use the Jetpack Video player, but the block sidebar options should still be there and work.
 
-Here are a few other things you can try:
+**Note**: some browsers do not respect the autoplay settings, so that setting may not work in all browsers.
 
-- Toggle the "show number of subscribers" in the editor. Confirm that you see the number of subscribers when the block loses focus.
-- After subscribing with a few different email addresses (and confirming your subscription), confirm that you see the number of subscribed users on the frontend (when the toggle was enabled for the block in the editor) and the editor when the block doesn't have focus.
+### Widgets
 
-**Related Posts Block**
+We've made some changes to the Contact Info Widget in this release. It could sometimes prove difficult to add a map to the widget. We've tried to make that process more straightforward by fixing some bugs, surfacing errors for site owners, and displaying previews in the dashboard. 
 
-This block allows you to add Related Posts anywhere within your posts and pages. Give it a try by adding it from the editor, and make sure it looks good on your site. The different block options should also work well.
+To test this, activate the Extra Sidebar Widgets feature on your site, head over to Appearance > Customize or Appearance > Widgets, and try to add a Contact Info Widget with a map.
 
-Ideally, test this on a site that has some posts already, in order to be able to use the already indexed posts without the need to create related posts and wait for indexing.
+You'll want to test and see what happens when you don't provide an API key, when you provide an incorrect key, or when your Google API settings restrict access to that key.
 
-**Tiled Gallery Block**
+### Others
 
-This block allows one to embed tiled galleries in their posts. It is available as soon as you connect Jetpack to WordPress.com. Try to use the block and its different layout options, and let us know what you think!
-
-**Shortlinks**
-
-It is now possible to view a post's shortlink in the Jetpack plugin sidebar. Give it a try when the feature is on, off, and make sure everything works as you would expect.
-
-### Carousel
-
-We have some changes to the Carousel feature to make sure it works with the different types of images now available. To test, try clicking on images inserted via those solutions:
-
-- with a classic block and a classic gallery in it
-- with a core gallery block
-- with a new tiled gallery block
-- with a classic block and a tiled gallery in it.
-
-### AMP
-
-We've made a number of improvements to the way Jetpack works with the latest version of the AMP plugin.
-
-To test this, add the plugin to your site, and switch between the different modes under the AMP plugin options. You will want to check that the following features are working:
-
-- Sharing buttons should be properly displayed.
-- Stats should be recorded when you are visiting your site and not logged in to your admin account (look for call to the stats tracking pixel in your browser's network tab).
-- You should not see any PHP notices.
-
-### Shortcodes
-
-This release also adds a new shortcode, `[jetpack-email-subscribe]`. You can use it to insert Mailchimp subscription forms anywhere in your posts and pages.
-
-To use it, try the following:
-
-1. Go to [https://wordpress.com/sharing/](https://wordpress.com/sharing/) and choose your test site.
-2. Under the new Mailchimp section, connect your site to a Mailchimp account.
-3. That's it! You can now use `[jetpack-email-subscribe]` anywhere on your site!
-
-**At any point during your testing, remember to [check your browser's JavaScript console](https://codex.wordpress.org/Using_Your_Browser_to_Diagnose_JavaScript_Errors#Step_3:_Diagnosis) and see if there are any errors reported by Jetpack there.**
+- If you have the opportunity to test in an older browser like IE11, please do so. You may catch some interesting bugs!
+- **At any point during your testing, remember to [check your browser's JavaScript console](https://codex.wordpress.org/Using_Your_Browser_to_Diagnose_JavaScript_Errors#Step_3:_Diagnosis) and see if there are any errors reported by Jetpack there.**
+- Use "Debug Bar" or "Query Monitor" to help make PHP notices and warnings more noticible and report anything you see.
 
 **Thank you for all your help!**

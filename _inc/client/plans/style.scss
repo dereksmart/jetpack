@@ -201,9 +201,14 @@ $plan-features-sidebar-width: 272px;
 
 .plan-price__yearly {
 	color: $gray-dark;
+
+	abbr {
+		text-underline-position: under;
+	}
 }
 
-.plans-mobile-notice {
+.plans-mobile-notice,
+.plans-mobile-notice.dops-card {
 	@include breakpoint( ">660px" ) {
 		display: none;
 	}

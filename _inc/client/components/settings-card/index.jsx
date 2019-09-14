@@ -5,11 +5,9 @@ import PropTypes from 'prop-types';
 import React from 'react';
 import { connect } from 'react-redux';
 import { translate as __ } from 'i18n-calypso';
-import includes from 'lodash/includes';
-import isEmpty from 'lodash/isEmpty';
 import Button from 'components/button';
 import analytics from 'lib/analytics';
-import get from 'lodash/get';
+import { get, includes, isEmpty } from 'lodash';
 
 /**
  * Internal dependencies
@@ -152,7 +150,9 @@ export const SettingsCard = props => {
 				return (
 					<JetpackBanner
 						callToAction={ upgradeLabel }
-						title={ __( 'Integrate easily with Google Analytics.' ) }
+						title={ __(
+							'Connect your site to Google Analytics in seconds with Jetpack Premium or Professional.'
+						) }
 						plan={ PLAN_JETPACK_PREMIUM }
 						feature={ feature }
 						onClick={ handleClickForTracking( feature ) }
@@ -167,7 +167,9 @@ export const SettingsCard = props => {
 				return (
 					<JetpackBanner
 						callToAction={ upgradeLabel }
-						title={ __( 'Help your content get found and shared with SEO tools.' ) }
+						title={ __(
+							'Boost your search engine ranking with the powerful SEO tools in Jetpack Premium or Professional.'
+						) }
 						plan={ PLAN_JETPACK_PREMIUM }
 						feature={ feature }
 						onClick={ handleClickForTracking( feature ) }
@@ -250,13 +252,6 @@ export const SettingsCard = props => {
 
 				break;
 
-			case FEATURE_SEO_TOOLS_JETPACK:
-				if ( 'is-business-plan' !== planClass && 'is-premium-plan' !== planClass ) {
-					return false;
-				}
-
-				break;
-
 			case FEATURE_SPAM_AKISMET_PLUS:
 				if (
 					( includes( [ 'is-free-plan' ], planClass ) || isEmpty( planClass ) ) &&
@@ -316,7 +311,7 @@ export const SettingsCard = props => {
 
 	return (
 		getModuleOverridenBanner() || (
-			<form className="jp-form-settings-card" onSubmit={ ! isSaving && props.onSubmit }>
+			<form className="jp-form-settings-card" onSubmit={ ! isSaving ? props.onSubmit : undefined }>
 				<SectionHeader label={ header }>
 					{ ! props.hideButton && (
 						<Button primary compact type="submit" disabled={ isSaving || ! props.isDirty() }>

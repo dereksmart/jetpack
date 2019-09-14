@@ -1,5 +1,7 @@
 <?php
 
+use Automattic\Jetpack\Assets;
+
 if ( ! class_exists( 'WP_List_Table' ) )
 	require_once ABSPATH . 'wp-admin/includes/class-wp-list-table.php';
 
@@ -10,9 +12,7 @@ class Jetpack_Modules_List_Table extends WP_List_Table {
 
 		Jetpack::init();
 
-		// In WP 4.2 WP_List_Table will be sanitizing which values are __set()
-		global $wp_version;
-		if ( version_compare( $wp_version, '4.2-z', '>=' ) && $this->compat_fields && is_array( $this->compat_fields ) ) {
+		if ( $this->compat_fields && is_array( $this->compat_fields ) ) {
 			array_push( $this->compat_fields, 'all_items' );
 		}
 
@@ -31,7 +31,7 @@ class Jetpack_Modules_List_Table extends WP_List_Table {
 
 		wp_register_script(
 			'models.jetpack-modules',
-			Jetpack::get_file_url_for_environment(
+			Assets::get_file_url_for_environment(
 				'_inc/build/jetpack-modules.models.min.js',
 				'_inc/jetpack-modules.models.js'
 			),
@@ -40,7 +40,7 @@ class Jetpack_Modules_List_Table extends WP_List_Table {
 		);
 		wp_register_script(
 			'views.jetpack-modules',
-			Jetpack::get_file_url_for_environment(
+			Assets::get_file_url_for_environment(
 				'_inc/build/jetpack-modules.views.min.js',
 				'_inc/jetpack-modules.views.js'
 			),
@@ -49,7 +49,7 @@ class Jetpack_Modules_List_Table extends WP_List_Table {
 		);
 		wp_register_script(
 			'jetpack-modules-list-table',
-			Jetpack::get_file_url_for_environment(
+			Assets::get_file_url_for_environment(
 				'_inc/build/jetpack-modules.min.js',
 				'_inc/jetpack-modules.js'
 			),
@@ -92,6 +92,7 @@ class Jetpack_Modules_List_Table extends WP_List_Table {
 			if ( data.items.length ) {
 			_.each( data.items, function( item, key, list ) {
 				if ( item === undefined ) return;
+				if ( 'pwa' == item.module && ! item.activated ) return;
 				if ( 'manage' == item.module && item.activated ) return; #>
 				<tr class="jetpack-module <# if ( ++i % 2 ) { #> alternate<# } #><# if ( item.activated ) { #> active<# } #><# if ( ! item.available ) { #> unavailable<# } #>" id="{{{ item.module }}}">
 					<th scope="row" class="check-column">
@@ -143,13 +144,7 @@ class Jetpack_Modules_List_Table extends WP_List_Table {
 			'all' => sprintf( $format, $title, $count, $url, $current ),
 		);
 		foreach ( $module_tags_unique as $title => $count ) {
-			if ( 'Jumpstart' == $title ) {
-				continue;
-			}
 			$key           = sanitize_title( $title );
-			if ( 'centralized-management' === $key && Jetpack::is_module_active( 'manage' ) ) {
-				continue;
-			}
 			$display_title = esc_html( wptexturize( $title ) );
 			$url           = esc_url( add_query_arg( 'module_tag', urlencode( $title ) ) );
 			$current       = '';

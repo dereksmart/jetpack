@@ -3,7 +3,7 @@
 /**
  * Generates a Photon URL.
  *
- * @see http://developer.wordpress.com/docs/photon/
+ * @see https://developer.wordpress.com/docs/photon/
  *
  * @param string $image_url URL to the publicly accessible image you want to manipulate
  * @param array|string $args An array of arguments, i.e. array( 'w' => '300', 'resize' => array( 123, 456 ) ), or in string form (w=123&h=456)
@@ -68,14 +68,16 @@ function jetpack_photon_url( $image_url, $args = array(), $scheme = null ) {
 	 */
 	$args = apply_filters( 'jetpack_photon_pre_args', $args, $image_url, $scheme );
 
-	if ( empty( $image_url ) )
+	if ( empty( $image_url ) ) {
 		return $image_url;
+	}
 
 	$image_url_parts = @jetpack_photon_parse_url( $image_url );
 
 	// Unable to parse
-	if ( ! is_array( $image_url_parts ) || empty( $image_url_parts['host'] ) || empty( $image_url_parts['path'] ) )
+	if ( ! is_array( $image_url_parts ) || empty( $image_url_parts['host'] ) || empty( $image_url_parts['path'] ) ) {
 		return $image_url;
+	}
 
 	if ( is_array( $args ) ){
 		// Convert values that are arrays into strings
@@ -86,7 +88,7 @@ function jetpack_photon_url( $image_url, $args = array(), $scheme = null ) {
 		}
 
 		// Encode values
-		// See http://core.trac.wordpress.org/ticket/17923
+		// See https://core.trac.wordpress.org/ticket/17923
 		$args = rawurlencode_deep( $args );
 	}
 
@@ -112,6 +114,16 @@ function jetpack_photon_url( $image_url, $args = array(), $scheme = null ) {
 		|| $image_url_parts['host'] === jetpack_photon_parse_url( $custom_photon_url, PHP_URL_HOST )
 		|| $is_wpcom_image
 	) {
+		/*
+		 * VideoPress Poster images should only keep one param, ssl.
+		 */
+		if (
+			is_array( $args )
+			&& 'videos.files.wordpress.com' === strtolower( $image_url_parts['host'] )
+		) {
+			$args = array_intersect_key( array( 'ssl' => 1 ), $args );
+		}
+
 		$photon_url = add_query_arg( $args, $image_url );
 		return jetpack_photon_url_scheme( $photon_url, $scheme );
 	}
@@ -133,8 +145,9 @@ function jetpack_photon_url( $image_url, $args = array(), $scheme = null ) {
 		// However some source images are served via PHP so check the no-query-string extension.
 		// For future proofing, this is a blacklist of common issues rather than a whitelist.
 		$extension = pathinfo( $image_url_parts['path'], PATHINFO_EXTENSION );
-		if ( empty( $extension ) || in_array( $extension, array( 'php', 'ashx' ) ) )
+		if ( empty( $extension ) || in_array( $extension, array( 'php', 'ashx' ) ) ) {
 			return $image_url;
+		}
 	}
 
 	$image_host_path = $image_url_parts['host'] . $image_url_parts['path'];
@@ -260,7 +273,7 @@ function jetpack_photon_url_scheme( $url, $scheme ) {
  * A wrapper for PHP's parse_url, prepending assumed scheme for network path
  * URLs. PHP versions 5.4.6 and earlier do not correctly parse without scheme.
  *
- * @see http://php.net/manual/en/function.parse-url.php#refsect1-function.parse-url-changelog
+ * @see https://php.net/manual/en/function.parse-url.php#refsect1-function.parse-url-changelog
  *
  * @param string $url The URL to parse
  * @param integer $component Retrieve specific URL component
@@ -280,7 +293,10 @@ function jetpack_photon_banned_domains( $skip, $image_url ) {
 		'/^chart\.googleapis\.com$/',
 		'/^chart\.apis\.google\.com$/',
 		'/^graph\.facebook\.com$/',
-		'/\.fbcdn\.net$/'
+		'/\.fbcdn\.net$/',
+		'/\.paypalobjects\.com$/',
+		'/\.dropbox\.com$/',
+		'/\.cdninstagram\.com$/',
 	);
 
 	$host = jetpack_photon_parse_url( $image_url, PHP_URL_HOST );

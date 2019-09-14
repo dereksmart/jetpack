@@ -4,26 +4,26 @@
 import PropTypes from 'prop-types';
 import React from 'react';
 import { connect } from 'react-redux';
-import noop from 'lodash/noop';
+import { noop } from 'lodash';
 import Banner from 'components/banner';
 
 /**
  * Internal dependencies
  */
-import { arePromotionsActive } from 'state/initial-state';
-import { userCanManageModules } from 'state/initial-state';
+import { arePromotionsActive, userCanManageModules } from 'state/initial-state';
 
 class JetpackBanner extends Banner {
 	static propTypes = {
 		callToAction: PropTypes.string,
 		className: PropTypes.string,
 		description: PropTypes.node,
-		event: PropTypes.string,
+		eventFeature: PropTypes.string,
 		feature: PropTypes.string,
 		href: PropTypes.string,
 		icon: PropTypes.string,
 		list: PropTypes.arrayOf( PropTypes.string ),
 		onClick: PropTypes.func,
+		path: PropTypes.string,
 		plan: PropTypes.string,
 		siteSlug: PropTypes.string,
 		title: PropTypes.string.isRequired,

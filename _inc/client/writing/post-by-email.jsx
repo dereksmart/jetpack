@@ -60,6 +60,11 @@ class PostByEmail extends React.Component {
 						link: 'https://jetpack.com/support/post-by-email/',
 					} }
 				>
+					<p>
+						{ __(
+							'Post by email is a quick way to publish new posts without visiting your site. We’ll generate a unique email address for you to send your content to, which will then appear on your site just like any other post.'
+						) }
+					</p>
 					{ this.props.userCanManageModules ? (
 						<ModuleToggle
 							slug="post-by-email"
@@ -80,7 +85,7 @@ class PostByEmail extends React.Component {
 					) }
 					<FormFieldset>
 						<FormLabel>
-							<FormLegend>{ __( 'Email Address' ) }</FormLegend>
+							<FormLegend>{ __( 'Send your new posts to this email address:' ) }</FormLegend>
 							<ClipboardButtonInput
 								value={ emailAddress }
 								disabled={ ! isPbeActive || disabledControls }
@@ -97,16 +102,15 @@ class PostByEmail extends React.Component {
 						</Button>
 					</FormFieldset>
 				</SettingsGroup>
-				{ ! this.props.isUnavailableInDevMode( 'post-by-email' ) &&
-					! this.props.isLinked && (
-						<Card
-							compact
-							className="jp-settings-card__configure-link"
-							href={ `${ this.props.connectUrl }&from=unlinked-user-pbe` }
-						>
-							{ __( 'Create a Jetpack account to use this feature' ) }
-						</Card>
-					) }
+				{ ! this.props.isUnavailableInDevMode( 'post-by-email' ) && ! this.props.isLinked && (
+					<Card
+						compact
+						className="jp-settings-card__configure-link"
+						href={ `${ this.props.connectUrl }&from=unlinked-user-pbe` }
+					>
+						{ __( 'Create a Jetpack account to use this feature' ) }
+					</Card>
+				) }
 			</SettingsCard>
 		);
 	}

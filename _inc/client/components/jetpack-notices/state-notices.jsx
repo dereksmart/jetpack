@@ -10,7 +10,7 @@ import SimpleNotice from 'components/notice';
  * Internal dependencies
  */
 
-import { getCurrentVersion, isGutenbergAvailable } from 'state/initial-state';
+import { getCurrentVersion, isGutenbergAvailable, getSiteAdminUrl } from 'state/initial-state';
 import {
 	getJetpackStateNoticesErrorCode,
 	getJetpackStateNoticesMessageCode,
@@ -19,7 +19,6 @@ import {
 import { isUnavailableInDevMode } from 'state/connection';
 import NoticeAction from 'components/notice/notice-action.jsx';
 import UpgradeNoticeContent from 'components/upgrade-notice-content';
-import { getSiteAdminUrl } from 'state/initial-state';
 
 class JetpackStateNotices extends React.Component {
 	static displayName = 'JetpackStateNotices';
@@ -80,6 +79,16 @@ class JetpackStateNotices extends React.Component {
 					{
 						args: {
 							error_key: key,
+						},
+					}
+				);
+				break;
+			case 'site_blacklisted':
+				message = __(
+					"This site can't be connected to WordPress.com because it violates our {{a}}Terms of Service{{/a}}.",
+					{
+						components: {
+							a: <a href="https://wordpress.com/tos" rel="noopener noreferrer" target="_blank" />,
 						},
 					}
 				);

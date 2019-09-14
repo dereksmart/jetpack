@@ -1,17 +1,17 @@
 /**
  * External dependencies
  */
-const PropTypes = require( 'prop-types' );
-const React = require( 'react' );
-const classnames = require( 'classnames' );
-import assign from 'lodash/assign';
-import omit from 'lodash/omit';
+import PropTypes from 'prop-types';
+import React from 'react';
+import classnames from 'classnames';
+import { assign, omit } from 'lodash';
+
 /**
  * Internal dependencies
  */
-const Gridicon = require( '../gridicon' );
+import Gridicon from '../gridicon';
 
-require( './style.scss' );
+import './style.scss';
 
 class CardSection extends React.Component {
 	static propTypes = {
@@ -67,6 +67,7 @@ class Card extends React.Component {
 		style: PropTypes.object,
 		className: PropTypes.string,
 		href: PropTypes.string,
+		onClick: PropTypes.func,
 		title: PropTypes.string,
 		tagName: PropTypes.string,
 		target: PropTypes.string,
@@ -78,6 +79,7 @@ class Card extends React.Component {
 		iconColor: '#787878',
 		className: '',
 		tagName: 'div',
+		onClick: () => {},
 	};
 
 	render() {
@@ -135,4 +137,4 @@ class Card extends React.Component {
 Card.Section = CardSection;
 Card.Footer = CardFooter;
 
-module.exports = Card;
+export default Card;

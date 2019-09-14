@@ -37,7 +37,7 @@ class WPCOM_JSON_API {
 	 */
 	static function init( $method = null, $url = null, $post_body = null ) {
 		if ( !self::$self ) {
-			$class = function_exists( 'get_called_class' ) ? get_called_class() : __CLASS__; // phpcs:ignore PHPCompatibility.PHP.NewFunctions.get_called_classFound
+			$class = function_exists( 'get_called_class' ) ? get_called_class() : __CLASS__; // phpcs:ignore PHPCompatibility.FunctionUse.NewFunctions.get_called_classFound
 			self::$self = new $class( $method, $url, $post_body );
 		}
 		return self::$self;
@@ -94,8 +94,10 @@ class WPCOM_JSON_API {
 			$this->url = $url;
 		}
 
-		$parsed     = parse_url( $this->url );
-		$this->path = $parsed['path'];
+		$parsed = parse_url( $this->url );
+		if ( ! empty( $parsed['path'] ) ) {
+			$this->path = $parsed['path'];
+		}
 
 		if ( !empty( $parsed['query'] ) ) {
 			wp_parse_str( $parsed['query'], $this->query );
@@ -417,7 +419,7 @@ class WPCOM_JSON_API {
 		if ( $callback ) {
 			// Mitigate Rosetta Flash [1] by setting the Content-Type-Options: nosniff header
 			// and by prepending the JSONP response with a JS comment.
-			// [1] http://miki.it/blog/2014/7/8/abusing-jsonp-with-rosetta-flash/
+			// [1] https://blog.miki.it/2014/7/8/abusing-jsonp-with-rosetta-flash/index.html
 			echo "/**/$callback(";
 
 		}
@@ -540,7 +542,7 @@ class WPCOM_JSON_API {
 	}
 
 	function json_encode( $data ) {
-		return json_encode( $data );
+		return wp_json_encode( $data );
 	}
 
 	function ends_with( $haystack, $needle ) {
@@ -740,7 +742,7 @@ class WPCOM_JSON_API {
 			'response' => $this->trapped_error['status'],
 		) );
 
-		// ... unless it's 500 ( see http://wp.me/pMz3w-5VV )
+		// ... unless it's 500
 		if ( (int) $args['response'] !== 500 ) {
 			$this->trapped_error['status'] = $args['response'];
 		}

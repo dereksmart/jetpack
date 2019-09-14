@@ -63,12 +63,28 @@ class RelatedPostsComponent extends React.Component {
 					disableInDevMode
 					module={ this.props.getModule( 'related-posts' ) }
 					support={ {
+						text: __(
+							'The feature helps visitors find more of your content by ' +
+								'displaying related posts at the bottom of each post.'
+						),
 						link: 'https://jetpack.com/support/related-posts/',
 					} }
 				>
-					<p className="jp-form-setting-explanation">
+					<p>
 						{ __(
-							'The following settings will impact all related posts on your site, except for those you created via the block editor:'
+							'Keep your visitors engaged with related content at the bottom of each post. ' +
+								"These settings won't apply to {{a}}related posts added using the block editor{{/a}}.",
+							{
+								components: {
+									a: (
+										<a
+											href="https://jetpack.com/support/jetpack-blocks/related-posts-block/"
+											target="_blank"
+											rel="noopener noreferrer"
+										/>
+									),
+								},
+							}
 						) }
 					</p>
 					<ModuleToggle
@@ -122,7 +138,7 @@ class RelatedPostsComponent extends React.Component {
 									) }
 									{ [
 										{
-											url: '1-wpios-ipad-3-1-viewsite.png',
+											url: 'cat-blog.png',
 											text: __( 'Big iPhone/iPad Update Now Available' ),
 											context: __( 'In "Mobile"', {
 												comment:
@@ -130,7 +146,7 @@ class RelatedPostsComponent extends React.Component {
 											} ),
 										},
 										{
-											url: 'wordpress-com-news-wordpress-for-android-ui-update2.jpg',
+											url: 'devices.jpg',
 											text: __( 'The WordPress for Android App Gets a Big Facelift' ),
 											context: __( 'In "Mobile"', {
 												comment:
@@ -138,7 +154,7 @@ class RelatedPostsComponent extends React.Component {
 											} ),
 										},
 										{
-											url: 'videopresswedding.jpg',
+											url: 'mobile-wedding.jpg',
 											text: __( 'Upgrade Focus: VideoPress For Weddings' ),
 											context: __( 'In "Upgrade"', {
 												comment:
@@ -149,9 +165,7 @@ class RelatedPostsComponent extends React.Component {
 										<div key={ `preview_${ index }` } className="jp-related-posts-preview__item">
 											{ this.state.show_thumbnails && (
 												<img
-													src={ `https://jetpackme.files.wordpress.com/2014/08/${
-														item.url
-													}?w=350&h=200&crop=1` }
+													src={ `https://jetpackme.files.wordpress.com/2019/03/${ item.url }` }
 													alt={ item.text }
 												/>
 											) }
@@ -166,17 +180,16 @@ class RelatedPostsComponent extends React.Component {
 						) }
 					</FormFieldset>
 				</SettingsGroup>
-				{ ! this.props.isUnavailableInDevMode( 'related-posts' ) &&
-					isRelatedPostsActive && (
-						<Card
-							compact
-							className="jp-settings-card__configure-link"
-							onClick={ this.trackConfigureClick }
-							href={ this.props.configureUrl }
-						>
-							{ __( 'Configure related posts in the Customizer' ) }
-						</Card>
-					) }
+				{ ! this.props.isUnavailableInDevMode( 'related-posts' ) && isRelatedPostsActive && (
+					<Card
+						compact
+						className="jp-settings-card__configure-link"
+						onClick={ this.trackConfigureClick }
+						href={ this.props.configureUrl }
+					>
+						{ __( 'Configure related posts in the Customizer' ) }
+					</Card>
+				) }
 			</SettingsCard>
 		);
 	}
