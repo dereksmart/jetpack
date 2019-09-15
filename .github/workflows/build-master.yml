@@ -17,14 +17,13 @@ jobs:
         run: rm ./.eslintrc.js
       - name: Checkout changes to built branch
         run: git checkout master-test-built
-      - name: Push to remote
-        uses: stefanzweifel/git-auto-commit-action@v2.0.0
-          with:
-            commit_author_email: smart@automattic.com
-            commit_author_name: dsmart
-            commit_message: Update master-built
-          env:
-            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - uses: stefanzweifel/git-auto-commit-action@v2.0.0
+        with:
+          commit_author_email: smart@automattic.com
+          commit_author_name: dsmart
+          commit_message: Update master-built
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Build Production
         run: |
           yarn install
