@@ -15,10 +15,11 @@ jobs:
         uses: actions/checkout@master
       - name: Build Production
         run: |
-          yarn clean
           yarn install --production
           yarn build-production-client
           yarn build-production-php
-          NODE_ENV=production yarn build-extensions
-          gulp languages:extract
+      - name: Build Extensions
+        run: NODE_ENV=production yarn build-extensions
+      - name: Extract languages
+        run: gulp languages:extract
           
