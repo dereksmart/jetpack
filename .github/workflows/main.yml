@@ -1,0 +1,16 @@
+name: CI
+
+on:
+  push:
+    branches:
+    - master-test
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Build production
+    - uses: Borales/actions-yarn@1.1.0
+      run: yarn build-production
