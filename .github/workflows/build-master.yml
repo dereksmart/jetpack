@@ -15,7 +15,7 @@ jobs:
         uses: actions/checkout@master
       - name: Build Production
         run: |
-          yarn install --production
+          yarn install
           yarn build-production-client
           yarn build-production-php
       - name: Build Extensions
