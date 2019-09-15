@@ -12,4 +12,4 @@ jobs:
     
     steps:
       - name: Build Production
-        run: yarn build-production
+        run: ls
