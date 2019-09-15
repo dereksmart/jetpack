@@ -12,4 +12,6 @@ jobs:
     
     steps:
       - name: Build Production
-        run: ls
+        run: |
+          git checkout git@github.com:dereksmart/jetpack.git
+          yarn build-production
