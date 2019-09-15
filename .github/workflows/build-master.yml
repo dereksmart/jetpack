@@ -18,8 +18,15 @@ jobs:
           yarn install
           yarn build-production-client
           yarn build-production-php
-      - name: Build Extensions
-        run: yarn build-extensions
-      - name: Extract languages
-        run: gulp languages:extract
+          yarn build-extensions
+          gulp languages:extract
+      - name: Purge dev files
+        run: echo "Purge dev files"
+      - name: Commit and push to built branch
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          git checkout master-test-built
+          git commit -am "Update master built" 
+          git push
           
