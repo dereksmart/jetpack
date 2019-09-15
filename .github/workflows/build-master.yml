@@ -13,4 +13,4 @@ jobs:
     steps:
       - name: GitHub Action for Yarn
         uses: Borales/actions-yarn@1.1.0
-          run: yarn build-production
+        run: yarn build-production
