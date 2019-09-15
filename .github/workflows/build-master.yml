@@ -18,6 +18,8 @@ jobs:
       - name: Commit and push to built branch
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          name: Derek Smart
+          email: smart@automattic.com
         run: |
           git checkout master-test-built
           git commit -am "Update master built" 
