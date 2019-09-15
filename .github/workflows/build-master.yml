@@ -16,5 +16,11 @@ jobs:
       - name: Install deps
         run: yarn install
       - name: Build Production
-        run: yarn run build-production
+        run: |
+          yarn clean
+          yarn install --production
+          yarn build-production-client
+          yarn build-production-php
+          NODE_ENV=production yarn build-extensions
+          gulp languages:extract
           
