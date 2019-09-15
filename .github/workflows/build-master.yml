@@ -16,5 +16,5 @@ jobs:
       - name: Install deps
         run: yarn install
       - name: Build Production
-        run: yarn build-production
+        run: yarn run build-production
           
