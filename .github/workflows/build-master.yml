@@ -19,7 +19,7 @@ jobs:
           yarn build-production-client
           yarn build-production-php
       - name: Build Extensions
-        run: NODE_ENV=production yarn build-extensions
+        run: yarn build-extensions
       - name: Extract languages
         run: gulp languages:extract
           
