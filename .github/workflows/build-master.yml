@@ -12,6 +12,5 @@ jobs:
     
     steps:
       - name: Build Production
-        run: |
-          git checkout git@github.com:dereksmart/jetpack.git
-          yarn build-production
+        uses: actions/checkout@master
+        run: yarn build-production
