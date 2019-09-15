@@ -11,6 +11,6 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
-    - name: Build production
-    - uses: Borales/actions-yarn@1.1.0
+    - name: GitHub Action for Yarn
+    uses: Borales/actions-yarn@1.1.0
       run: yarn build-production
