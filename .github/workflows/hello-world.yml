@@ -19,8 +19,8 @@ jobs:
 #          yarn build-production-php
 #          yarn build-extensions
 #          gulp languages:extract
-      - name: Purge dev files
-        run: $GITHUB_WORKSPACE/bin/purge-dev-files.sh
+#      - name: Purge dev files
+#        run: $GITHUB_WORKSPACE/bin/purge-dev-files.sh
       - name: Push to built branch
         id: commit-and-push
         uses: automattic/action-commit-to-branch@initial-commit
