@@ -5,13 +5,13 @@ on:
       - hello-world
 
 jobs:
-  hello_world_job:
+  build_master_job:
     runs-on: ubuntu-latest
     name: Build to master-built
     steps:
       - name: Checkout Jetpack
         uses: actions/checkout@master
-      - name: Build production files|
+      - name: Build production files
         # todo fix the actual production build command, this should just be 'yarn build-production'
         run: |
           yarn install
@@ -27,3 +27,5 @@ jobs:
         with:
           branch: 'hello-world-built'
           commit_message: 'Build master'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
