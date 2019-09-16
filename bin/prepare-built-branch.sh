@@ -38,7 +38,7 @@ function create_release_gitignore {
 	# Remove old .gitignore
 	rm .gitignore-tmp
 
-	git commit .gitignore -m "updated .gitignore"
+	git commit -am "updated .gitignore"
 }
 
 create_release_gitignore
