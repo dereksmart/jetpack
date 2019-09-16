@@ -10,7 +10,7 @@ jobs:
     name: Build to master-built
     steps:
       - name: Purge dev files
-        run: ./bin/purge-dev-files.sh
+        run: $GITHUB_WORKSPACE/bin/purge-dev-files.sh
       - name: Push to master-built
         id: commit-and-push
         uses: dereksmart/action-playground@master
