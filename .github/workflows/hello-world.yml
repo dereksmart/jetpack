@@ -20,11 +20,9 @@ jobs:
           gulp languages:extract
       - name: Purge dev files
         run: $GITHUB_WORKSPACE/bin/prepare-built-branch.sh
-      - name: Commit .gitignore changes
-        run: git commit $GITHUB_WORKSPACE/.gitignore -m "Update .gitignore"
       - name: Push to built branch
         id: commit-and-push
-        uses: automattic/action-commit-to-branch@master
+        uses: automattic/action-commit-to-branch@add/change-for-gitignore
         with:
           branch: 'whatever-built3'
           commit_message: 'Automated production build from master'
