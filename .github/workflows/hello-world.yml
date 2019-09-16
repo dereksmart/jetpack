@@ -21,11 +21,11 @@ jobs:
 #          gulp languages:extract
       - name: Purge dev files
         run: $GITHUB_WORKSPACE/bin/purge-dev-files.sh
-      - name: Push to built branch!
+      - name: Push to built branch
         id: commit-and-push
         uses: automattic/action-commit-to-branch@initial-commit
         with:
-          branch: 'whatever-built'
+          branch: 'whatever-built1'
           commit_message: 'Automated production build from master'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
