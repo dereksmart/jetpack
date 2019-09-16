@@ -9,8 +9,16 @@ jobs:
     runs-on: ubuntu-latest
     name: Build to master-built
     steps:
-      - name: Checkout
+      - name: Checkout Jetpack
         uses: actions/checkout@master
+      - name: Build production files|
+        # todo fix the actual production build command, this should just be 'yarn build-production'
+        run: |
+          yarn install
+          yarn build-production-client
+          yarn build-production-php
+          yarn build-extensions
+          gulp languages:extract
       - name: Purge dev files
         run: $GITHUB_WORKSPACE/bin/purge-dev-files.sh
       - name: Push to master-built
@@ -18,4 +26,4 @@ jobs:
         uses: dereksmart/action-playground@master
         with:
           branch: 'hello-world-built'
-          commit_message: 'This is my awesome commit message!'
+          commit_message: 'Build master'
