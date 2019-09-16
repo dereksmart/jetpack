@@ -9,11 +9,11 @@ jobs:
     runs-on: ubuntu-latest
     name: A job to say hello
     steps:
-      - name: Hello world action step
-        id: hello
+      - name: Do something
+        id: do-something
         uses: dereksmart/action-playground@master
         with:
-          who-to-greet: 'Mona the Octocat'
+          branch: 'hello-world-built'
       # Use the output from the `hello` step
       - name: Get the output time
         run: echo "The time was ${{ steps.hello.outputs.time }}"
