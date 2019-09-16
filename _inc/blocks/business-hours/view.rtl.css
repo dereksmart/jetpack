@@ -1,0 +1,20 @@
+.jetpack-business-hours:before, .jetpack-business-hours:after {
+  content: "";
+  display: table;
+  table-layout: fixed; }
+
+.jetpack-business-hours:after {
+  clear: both; }
+
+.jetpack-business-hours dt,
+.jetpack-business-hours dd {
+  float: right; }
+
+.jetpack-business-hours dt {
+  clear: both;
+  font-weight: bold;
+  margin-left: 0.5rem; }
+
+.jetpack-business-hours dd {
+  margin: 0; }
+
