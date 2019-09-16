@@ -13,7 +13,7 @@ jobs:
         uses: actions/checkout@master
       - name: Build production files
         # todo fix the actual production build command, this should just be 'yarn build-production'
-        run: rm $GITHUB_WORKSPACE/.sass-cache
+        run: rm $GITHUB_WORKSPACE/.codeclimate.yml
 #        run: |
 #          yarn install
 #          yarn build-production-client
