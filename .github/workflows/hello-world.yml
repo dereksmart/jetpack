@@ -13,13 +13,12 @@ jobs:
         uses: actions/checkout@master
       - name: Build production files
         # todo fix the actual production build command, this should just be 'yarn build-production'
-        run: rm $GITHUB_WORKSPACE/.codeclimate.yml
-#        run: |
-#          yarn install
-#          yarn build-production-client
-#          yarn build-production-php
-#          yarn build-extensions
-#          gulp languages:extract
+        run: |
+          yarn install
+          yarn build-production-client
+          yarn build-production-php
+          yarn build-extensions
+          gulp languages:extract
       - name: Purge dev files
         run: $GITHUB_WORKSPACE/bin/purge-dev-files.sh
       - name: Push to built branch!

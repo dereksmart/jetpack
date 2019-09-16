@@ -7,5 +7,5 @@ for file in $( cat "$SVNIGNORE" 2>/dev/null ); do
 	if [[ $file == "to-test.md" || $file == "docs/testing/testing-tips.md" || $file =~ ^.git* ]]; then
 		continue;
 	fi
-	echo $file
+	rm -rf $file
 done
