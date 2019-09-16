@@ -9,7 +9,7 @@ jobs:
     runs-on: ubuntu-latest
     name: Build to master-built
     steps:
-      - name: Checkout Jetpack
+      - name: Checkout Jetpack!
         uses: actions/checkout@master
       - name: Build production files
         # todo fix the actual production build command, this should just be 'yarn build-production'
