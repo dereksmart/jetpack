@@ -13,22 +13,21 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@master
+          with:
+            fetch-depth: 1
+      #- name: Build Production
+      #  run: |
+      #    yarn install
+      #    yarn build-production-client
+      #    yarn build-production-php
+      #    yarn build-extensions
+      #    gulp languages:extract
       - name: Purge dev files
+        # Just an example, we'll want to remove all of the .svnignore files
         run: rm ./.eslintrc.js
-      - name: Checkout changes to built branch
-        run: git checkout master-test-built
-      - uses: stefanzweifel/git-auto-commit-action@v2.0.0
+      - uses: bumfo/action-deploy@v1
         with:
-          commit_author_email: smart@automattic.com
-          commit_author_name: dsmart
-          commit_message: Update master-built
+          ref: 'refs/heads/master-test-built'  # The branch to auto deploy, default to release/snapshot
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      - name: Build Production
-        run: |
-          yarn install
-          yarn build-production-client
-          yarn build-production-php
-          yarn build-extensions
-          gulp languages:extract
           
