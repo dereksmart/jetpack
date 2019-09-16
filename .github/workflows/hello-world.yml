@@ -23,7 +23,7 @@ jobs:
         run: $GITHUB_WORKSPACE/bin/prepare-built-branch.sh
       - name: Push to built branch
         id: commit-and-push
-        uses: automattic/action-commit-to-branch@initial-commit
+        uses: automattic/action-commit-to-branch@master
         with:
           branch: 'whatever-built3'
           commit_message: 'Automated production build from master'
