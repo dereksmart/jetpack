@@ -9,6 +9,8 @@ jobs:
     runs-on: ubuntu-latest
     name: Build to master-built
     steps:
+      - name: Checkout
+        uses: actions/checkout@master
       - name: Purge dev files
         run: $GITHUB_WORKSPACE/bin/purge-dev-files.sh
       - name: Push to master-built
