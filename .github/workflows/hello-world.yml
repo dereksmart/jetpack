@@ -1,4 +1,4 @@
-name: Do something!
+name: Build production to master-built
 on:
   push:
     branches:
@@ -7,12 +7,11 @@ on:
 jobs:
   build_master_job:
     runs-on: ubuntu-latest
-    name: Build to master-built
+    name: Build production version of master to master-built branch
     steps:
-      - name: Checkout Jetpack!
+      - name: Checkout Jetpack
         uses: actions/checkout@master
       - name: Build production files
-        # todo fix the actual production build command, this should just be 'yarn build-production'
         run: |
           yarn install
           yarn build-production-client
@@ -21,11 +20,11 @@ jobs:
           gulp languages:extract
       - name: Purge dev files
         run: $GITHUB_WORKSPACE/bin/purge-dev-files.sh
-      - name: Push to built branch!
+      - name: Push to built branch
         id: commit-and-push
         uses: automattic/action-commit-to-branch@initial-commit
         with:
-          branch: 'hello-world-built'
-          commit_message: 'Build master'
+          branch: 'whatever-built'
+          commit_message: 'Automated production build from master'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
