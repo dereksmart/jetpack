@@ -23,7 +23,7 @@ jobs:
         run: $GITHUB_WORKSPACE/bin/purge-dev-files.sh
       - name: Push to built branch!
         id: commit-and-push
-        uses: dereksmart/action-playground@master
+        uses: automattic/action-commit-to-branch@initial-commit
         with:
           branch: 'hello-world-built'
           commit_message: 'Build master'
