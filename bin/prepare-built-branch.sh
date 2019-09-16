@@ -10,7 +10,7 @@ function create_release_gitignore {
 
 	# Add things to the new .gitignore file, stopping at the things we want to keep.
 	while IFS='' read -r line || [[ -n "$line" ]]; do
-		if [ "$line" == "## Things we will need in release branches" ]; then
+		if [[ "$line" == "## Things we will need in release branches" ]]; then
 			break
 		fi
 		echo "$line" >> .gitignore

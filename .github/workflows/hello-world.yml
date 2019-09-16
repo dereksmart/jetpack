@@ -12,13 +12,12 @@ jobs:
       - name: Checkout Jetpack
         uses: actions/checkout@master
       - name: Build production files
-        run: rm $GITHUB_WORKSPACE/.eslintrc.js
-#        run: |
-#          yarn install
-#          yarn build-production-client
-#          yarn build-production-php
-#          yarn build-extensions
-#          gulp languages:extract
+        run: |
+          yarn install
+          yarn build-production-client
+          yarn build-production-php
+          yarn build-extensions
+          gulp languages:extract
       - name: Purge dev files
         run: $GITHUB_WORKSPACE/bin/prepare-built-branch.sh
       - name: Push to built branch
