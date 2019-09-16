@@ -1,4 +1,4 @@
-name: Hello
+name: Do something!
 on:
   push:
     branches:
