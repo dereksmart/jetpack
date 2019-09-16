@@ -21,7 +21,7 @@ jobs:
           gulp languages:extract
       - name: Purge dev files
         run: $GITHUB_WORKSPACE/bin/purge-dev-files.sh
-      - name: Push to built branch
+      - name: Push to built branch!
         id: commit-and-push
         uses: dereksmart/action-playground@master
         with:
