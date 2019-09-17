@@ -1,5 +1,5 @@
 name: "Build release branch"
-on: pull_request
+on: [push, pull_request]
 
 jobs:
   one:
