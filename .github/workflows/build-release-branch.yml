@@ -8,7 +8,7 @@ jobs:
       - name: Dump GitHub context
         env:
           GITHUB_CONTEXT: ${{ toJson(github) }}
-        if: ${{ contains( github.action, 'opened' ) }}
+#        if: ${{ contains( github.action, 'opened' ) }}
         run: echo "$GITHUB_CONTEXT"
       - name: Dump job context
         env:
