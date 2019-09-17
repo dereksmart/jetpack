@@ -1,8 +1,5 @@
 name: "Build release branch"
-on:
-  push:
-    branches:
-      - add/milestone-action
+on: pull_request
 
 jobs:
   one:
@@ -11,7 +8,8 @@ jobs:
       - name: Dump GitHub context
         env:
           GITHUB_CONTEXT: ${{ toJson(github) }}
-        if: contains( github.actor, 'dereasdfksmart' )
+          MERGED: ${{ github.action == "merged" }}
+        run: echo "$MERGEDT"
         run: echo "$GITHUB_CONTEXT"
       - name: Dump job context
         env:
