@@ -8,10 +8,8 @@ jobs:
       - name: Dump GitHub context
         env:
           GITHUB_CONTEXT: ${{ toJson(github) }}
-          MERGED: ${{ github.action }}
-        run: |
-          echo "$MERGED"
-          echo "$GITHUB_CONTEXT"
+        if: contains( $GITHUB_CONTEXT.action, "opened" )
+        run: echo "$GITHUB_CONTEXT"
       - name: Dump job context
         env:
           JOB_CONTEXT: ${{ toJson(job) }}
