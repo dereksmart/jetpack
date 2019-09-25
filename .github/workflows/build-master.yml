@@ -9,8 +9,8 @@ jobs:
     runs-on: ubuntu-latest
     name: Build production version of master to master-built branch
     steps:
-#      - name: Checkout Jetpack
-#        uses: actions/checkout@master
+      - name: Checkout Jetpack
+        uses: actions/checkout@master
       - name: Build and push to built branch
         uses: automattic/action-jetpack-build-to-branch@testing
         with:
