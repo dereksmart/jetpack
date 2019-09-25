@@ -2,19 +2,20 @@ name: Build production to master-built
 on:
   push:
     branches:
-      - test-it
+      - master
 
 jobs:
   build_master_job:
     runs-on: ubuntu-latest
     name: Build production version of master to master-built branch
     steps:
+      - name: Checkout Jetpack
+        uses: actions/checkout@master
       - name: Push to built branch
         id: commit-and-push
-        uses: automattic/action-jetpack-build-to-branch@master
+        uses: automattic/action-commit-to-branch@master
         with:
-          branch_pull: 'test-it'
-          branch: 'test-it-built'
-          commit_message: 'Automated production build from test-it'
+          branch: 'master-built'
+          commit_message: 'Automated production build from master'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
