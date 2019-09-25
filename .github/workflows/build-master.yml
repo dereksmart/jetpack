@@ -9,7 +9,7 @@ jobs:
     runs-on: ubuntu-latest
     name: Build production version of master to master-built branch
     steps:
-      - name: Checkout Jetpack!
+      - name: Checkout Jetpack
         uses: actions/checkout@master
         with:
           depth: 1
