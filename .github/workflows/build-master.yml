@@ -11,6 +11,7 @@ jobs:
     steps:
       - name: Checkout Jetpack
         uses: actions/checkout@master
+        with:
           depth: 1
       - name: Build and push to built branch
         uses: automattic/action-jetpack-build-to-branch@testing
