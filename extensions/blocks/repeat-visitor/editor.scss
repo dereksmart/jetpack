@@ -1,13 +1,16 @@
 .wp-block-jetpack-repeat-visitor {
 	.components-notice {
 		margin: 1em 0 0;
+		&__content {
+			color: var( --color-black );
+		}
 	}
 	.components-radio-control__option {
 		text-align: left;
 	}
 	.components-notice__content {
 		margin: 0.5em 0;
-		font-size: 0.8em;
+		font-size: 1em;
 
 		.components-base-control {
 			display: inline-block;
@@ -32,6 +35,7 @@
 		flex-wrap: nowrap;
 		.components-base-control {
 			flex-basis: 100%;
+			margin-bottom: 0;
 		}
 	}
 
@@ -49,7 +53,20 @@
 	margin-right: 20px;
 
 	.components-text-control__input {
-		width: 5em;
+		margin-left: 12px;
 		text-align: center;
+		width: 5em;
+	}
+
+}
+
+// Overrides to make the preview look good
+.block-editor-inserter__preview {
+	.wp-block-jetpack-repeat-visitor {
+		padding: 16px;
+
+		> .block-editor-inner-blocks > .block-editor-block-list__layout {
+			margin: 0;
+		}
 	}
 }

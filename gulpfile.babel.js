@@ -5,7 +5,7 @@ import del from 'del';
 import deleteLines from 'gulp-rm-lines';
 import fs from 'fs';
 import gulp from 'gulp';
-import i18n_calypso from 'i18n-calypso/cli';
+import i18n_calypso from 'i18n-calypso-cli';
 import json_transform from 'gulp-json-transform';
 import log from 'fancy-log';
 import po2json from 'gulp-po2json';
@@ -29,6 +29,14 @@ import {
 
 gulp.task( 'old-styles:watch', function() {
 	return gulp.watch( 'scss/**/*.scss', gulp.parallel( 'old-styles' ) );
+} );
+
+gulp.task( 'blocks:watch', function() {
+	const child = require( 'child_process' ).execFile( 'yarn', [ 'build-extensions', '--watch' ] );
+
+	child.stdout.on( 'data', function( data ) {
+		log( data.toString() );
+	} );
 } );
 
 /*
@@ -222,7 +230,7 @@ gulp.task(
 );
 gulp.task(
 	'watch',
-	gulp.parallel( react_watch, sass_watch, sass_watch_packages, 'old-styles:watch' )
+	gulp.parallel( react_watch, sass_watch, sass_watch_packages, 'old-styles:watch', 'blocks:watch' )
 );
 
 // Keeping explicit task names to allow for individual runs

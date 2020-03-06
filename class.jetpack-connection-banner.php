@@ -133,6 +133,8 @@ class Jetpack_Connection_Banner {
 	 * @since 7.7
 	 */
 	public static function enqueue_connect_button_scripts() {
+		global $is_safari;
+
 		wp_enqueue_script(
 			'jetpack-connect-button',
 			Assets::get_file_url_for_environment(
@@ -152,15 +154,22 @@ class Jetpack_Connection_Banner {
 			)
 		);
 
-		$jetpackApiUrl = parse_url( Jetpack::connection()->api_url( '' ) );
+		$jetpackApiUrl = wp_parse_url( Jetpack::connection()->api_url( '' ) );
 
-		if ( Constants::is_true( 'JETPACK_SHOULD_USE_CONNECTION_IFRAME' ) ) {
+		// Due to the limitation in how 3rd party cookies are handled in Safari,
+		// we're falling back to the original flow on Safari desktop and mobile.
+		if ( $is_safari ) {
+			$force_variation = 'original';
+		} elseif ( Constants::is_true( 'JETPACK_SHOULD_USE_CONNECTION_IFRAME' ) ) {
 			$force_variation = 'in_place';
 		} elseif ( Constants::is_defined( 'JETPACK_SHOULD_USE_CONNECTION_IFRAME' ) ) {
 			$force_variation = 'original';
 		} else {
 			$force_variation = null;
 		}
+
+		$tracking = new Automattic\Jetpack\Tracking();
+		$identity = $tracking->tracks_get_identity( get_current_user_id() );
 
 		wp_localize_script(
 			'jetpack-connect-button',
@@ -173,8 +182,11 @@ class Jetpack_Connection_Banner {
 				'buttonTextRegistering' => __( 'Loading...', 'jetpack' ),
 				'jetpackApiDomain'      => $jetpackApiUrl['scheme'] . '://' . $jetpackApiUrl['host'],
 				'forceVariation'        => $force_variation,
+				'connectInPlaceUrl'     => Jetpack::admin_url( 'page=jetpack#/setup' ),
 				'dashboardUrl'          => Jetpack::admin_url( 'page=jetpack#/dashboard' ),
 				'plansPromptUrl'        => Jetpack::admin_url( 'page=jetpack#/plans-prompt' ),
+				'identity'              => $identity,
+				'preFetchScript'        => plugins_url( '_inc/build/admin.js', JETPACK__PLUGIN_FILE ) . '?ver=' . JETPACK__VERSION,
 			)
 		);
 	}
@@ -278,7 +290,7 @@ class Jetpack_Connection_Banner {
 								<span class="jp-banner__tos-blurb"><?php jetpack_render_tos_blurb(); ?></span>
 								<a
 										href="<?php echo esc_url( $this->build_connect_url_for_slide( '72' ) ); ?>"
-										class="dops-button is-primary">
+										class="dops-button is-primary jp-banner__alt-connect-button">
 									<?php esc_html_e( 'Set up Jetpack', 'jetpack' ); ?>
 								</a>
 							</div>

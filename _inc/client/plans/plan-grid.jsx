@@ -9,15 +9,22 @@ import { includes, map, reduce } from 'lodash';
 /**
  * Internal dependencies
  */
+import analytics from 'lib/analytics';
 import Button from 'components/button';
+import ButtonGroup from 'components/button-group';
 import { getSiteRawUrl, getUpgradeUrl, getUserId, showBackups } from 'state/initial-state';
-import { getSitePlan, getAvailablePlans } from 'state/site/reducer';
+import { getSitePlan, getAvailablePlans, isFetchingSiteData } from 'state/site/reducer';
 import { getPlanClass } from 'lib/plans/constants';
+import { isFetchingProducts } from '../state/products';
 import { translate as __ } from 'i18n-calypso';
 import TopButton from './top-button';
 import FeatureItem from './feture-item';
 
 class PlanGrid extends React.Component {
+	state = {
+		period: 'yearly',
+	};
+
 	/**
 	 * Memoized storage for plans to display according to highlighted features
 	 */
@@ -27,9 +34,41 @@ class PlanGrid extends React.Component {
 		this.featuredPlans = false;
 	}
 
-	render() {
-		if ( typeof this.props.plans === 'undefined' ) {
+	handlePeriodChange( newPeriod ) {
+		if ( newPeriod === this.state.period ) {
 			return null;
+		}
+
+		return () => {
+			analytics.tracks.recordJetpackClick( {
+				target: 'change-period-' + newPeriod,
+				feature: 'plans-grid',
+			} );
+
+			this.setState( {
+				period: newPeriod,
+			} );
+		};
+	}
+
+	handleSeeFeaturesClick( planType ) {
+		return () => {
+			analytics.tracks.recordJetpackClick( {
+				target: 'see-all-features-link',
+				feature: 'plans-grid',
+				extra: planType,
+			} );
+		};
+	}
+
+	render() {
+		if ( ! this.props.plans || this.props.isFetchingData ) {
+			return (
+				<div className="plan-features">
+					{ this.renderMobileCard() }
+					{ this.renderSkeletonGrid() }
+				</div>
+			);
 		}
 
 		const length = Object.values( this.getPlans() ).length;
@@ -38,6 +77,8 @@ class PlanGrid extends React.Component {
 		return (
 			<div className="plan-features">
 				{ this.renderMobileCard() }
+				{ this.renderPlanPeriodToggle() }
+
 				<div className="plan-features__content">
 					<table className={ tableClasses }>
 						<tbody>
@@ -68,6 +109,41 @@ class PlanGrid extends React.Component {
 				<Button href={ plansUrl } primary>
 					{ __( 'View all Jetpack plans' ) }
 				</Button>
+			</div>
+		);
+	}
+
+	renderPlanPeriodToggle() {
+		const { period } = this.state;
+		const periods = {
+			monthly: __( 'Monthly' ),
+			yearly: __( 'Yearly' ),
+		};
+
+		return (
+			<div className="plan-grid-period">
+				<ButtonGroup>
+					{ map( periods, ( periodLabel, periodName ) => (
+						<Button
+							key={ 'plan-period-button-' + periodName }
+							primary={ periodName === period }
+							onClick={ this.handlePeriodChange( periodName ) }
+							compact
+						>
+							{ periodLabel }
+						</Button>
+					) ) }
+				</ButtonGroup>
+			</div>
+		);
+	}
+
+	renderSkeletonGrid() {
+		return (
+			<div className="plan-grid-skeletons">
+				<div className="plan-grid-skeletons__plan is-placeholder"></div>
+				<div className="plan-grid-skeletons__plan is-placeholder"></div>
+				<div className="plan-grid-skeletons__plan is-placeholder"></div>
 			</div>
 		);
 	}
@@ -185,7 +261,7 @@ class PlanGrid extends React.Component {
 				<td key={ 'price-' + type } className={ className }>
 					<span
 						className="plan-price__yearly"
-						dangerouslySetInnerHTML={ { __html: plan.price.yearly.per } }
+						dangerouslySetInnerHTML={ { __html: plan.price[ this.state.period ].per } }
 					/>
 				</td>
 			);
@@ -214,6 +290,10 @@ class PlanGrid extends React.Component {
 			const { siteRawUrl, plansUpgradeUrl, sitePlan } = this.props;
 			const isActivePlan = this.isCurrentPlanType( planType );
 			const buttonText = isActivePlan ? plan.strings.manage : plan.strings.upgrade;
+			let planTypeWithPeriod = planType;
+			if ( 'monthly' === this.state.period ) {
+				planTypeWithPeriod += '-monthly';
+			}
 
 			return (
 				<TopButton
@@ -224,7 +304,7 @@ class PlanGrid extends React.Component {
 					isPrimary={ this.isPrimary( planType, plan ) }
 					shouldRenderButton={ this.shouldRenderButton( planType ) }
 					siteRawUrl={ siteRawUrl }
-					plansUpgradeUrl={ plansUpgradeUrl( planType ) }
+					plansUpgradeUrl={ plansUpgradeUrl( planTypeWithPeriod ) }
 					productSlug={ sitePlan.product_slug }
 				/>
 			);
@@ -261,7 +341,12 @@ class PlanGrid extends React.Component {
 					key={ 'bottom-' + planType }
 					className="plan-features__table-item is-bottom-buttons has-border-bottom"
 				>
-					<Button href={ this.props.plansLearnMoreUpgradeUrl }>{ plan.strings.see_all }</Button>
+					<a
+						href={ this.props.plansLearnMoreUpgradeUrl }
+						onClick={ this.handleSeeFeaturesClick( planType ) }
+					>
+						{ plan.strings.see_all }
+					</a>
 				</td>
 			);
 		} );
@@ -335,6 +420,7 @@ export default connect(
 			showBackups: showBackups( state ),
 			plansUpgradeUrl: planType => getUpgradeUrl( state, `plans-${ planType }`, userId ),
 			plansLearnMoreUpgradeUrl: getUpgradeUrl( state, 'plans-learn-more', userId ),
+			isFetchingData: isFetchingSiteData( state ) || isFetchingProducts( state ),
 		};
 	},
 	null

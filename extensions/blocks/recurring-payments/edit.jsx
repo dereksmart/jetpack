@@ -5,12 +5,11 @@ import classnames from 'classnames';
 import SubmitButton from '../../shared/submit-button';
 import apiFetch from '@wordpress/api-fetch';
 import { __, sprintf } from '@wordpress/i18n';
-import { trimEnd } from 'lodash';
+import { trimEnd, pick } from 'lodash';
 import formatCurrency, { getCurrencyDefaults } from '@automattic/format-currency';
 import { addQueryArgs, getQueryArg, isURL } from '@wordpress/url';
 import { compose } from '@wordpress/compose';
-import { withDispatch, withSelect } from '@wordpress/data';
-
+import { withSelect } from '@wordpress/data';
 import {
 	Button,
 	ExternalLink,
@@ -21,12 +20,14 @@ import {
 	withNotices,
 	SelectControl,
 } from '@wordpress/components';
-import { InspectorControls, BlockIcon } from '@wordpress/editor';
+import { InspectorControls, BlockIcon } from '@wordpress/block-editor';
 import { Fragment, Component } from '@wordpress/element';
 
 /**
  * Internal dependencies
  */
+import getJetpackExtensionAvailability from '../../shared/get-jetpack-extension-availability';
+import StripeNudge from '../../shared/components/stripe-nudge';
 import { icon, SUPPORTED_CURRENCY_LIST } from '.';
 
 const API_STATE_LOADING = 0;
@@ -56,6 +57,11 @@ class MembershipsButtonEdit extends Component {
 			editedProductRenewInterval: '1 month',
 		};
 		this.timeout = null;
+
+		const recurringPaymentsAvailability = getJetpackExtensionAvailability( 'recurring-payments' );
+		this.hasUpgradeNudge =
+			! recurringPaymentsAvailability.available &&
+			recurringPaymentsAvailability.unavailableReason === 'missing_plan';
 	}
 
 	componentDidMount = () => {
@@ -190,15 +196,15 @@ class MembershipsButtonEdit extends Component {
 		return sprintf( __( '%s / %s', 'jetpack' ), amount, product.interval );
 	};
 
-	renderAddMembershipAmount = () => {
-		if ( this.state.addingMembershipAmount === PRODUCT_NOT_ADDING ) {
+	renderAddMembershipAmount = forceShowForm => {
+		if ( this.state.addingMembershipAmount === PRODUCT_NOT_ADDING && ! forceShowForm ) {
 			return (
 				<Button
-					isDefault
+					isPrimary
 					isLarge
 					onClick={ () => this.setState( { addingMembershipAmount: PRODUCT_FORM } ) }
 				>
-					{ __( 'Add a Recurring Payments Plan', 'jetpack' ) }
+					{ __( 'Add a plan', 'jetpack' ) }
 				</Button>
 			);
 		}
@@ -259,12 +265,12 @@ class MembershipsButtonEdit extends Component {
 				/>
 				<div>
 					<Button
-						isDefault
+						isPrimary
 						isLarge
 						className="membership-button__field-button membership-button__add-amount"
 						onClick={ this.saveProduct }
 					>
-						{ __( 'Add Amount', 'jetpack' ) }
+						{ __( 'Add this plan', 'jetpack' ) }
 					</Button>
 					<Button
 						isLarge
@@ -344,15 +350,10 @@ class MembershipsButtonEdit extends Component {
 	}
 
 	render = () => {
-		const { attributes, className, notices, postId } = this.props;
+		const { notices } = this.props;
 		const { connected, products } = this.state;
-		const { align } = attributes;
 
 		const stripeConnectUrl = this.getConnectUrl();
-
-		// If we know the postId, assume we'll return to the editor. Navigate the top window.
-		// Otherwise, open a new window.
-		const stripeConnectTarget = postId ? '_top' : '_blank';
 
 		const inspectorControls = (
 			<InspectorControls>
@@ -375,43 +376,30 @@ class MembershipsButtonEdit extends Component {
 				</PanelBody>
 			</InspectorControls>
 		);
-		const blockClasses = classnames( className, [
-			'wp-block-button__link',
-			'components-button',
-			'is-primary',
-			'is-button',
-			`align${ align }`,
-		] );
-		const blockContent = (
-			<SubmitButton
-				className={ blockClasses }
-				submitButtonText={ this.props.attributes.submitButtonText }
-				attributes={ this.props.attributes }
-				setAttributes={ this.props.setAttributes }
-			/>
-		);
+
 		return (
 			<Fragment>
 				{ this.props.noticeUI }
-				{ this.state.shouldUpgrade && (
+				{ ! this.hasUpgradeNudge &&
+					! this.state.shouldUpgrade &&
+					connected === API_STATE_NOTCONNECTED && (
+						<StripeNudge blockName="recurring-payments" stripeConnectUrl={ stripeConnectUrl } />
+					) }
+				{ ! this.hasUpgradeNudge && this.state.shouldUpgrade && (
 					<div className="wp-block-jetpack-recurring-payments">
 						<Placeholder
 							icon={ <BlockIcon icon={ icon } /> }
 							label={ __( 'Recurring Payments', 'jetpack' ) }
 							notices={ notices }
+							instructions={ __(
+								"You'll need to upgrade your plan to use the Recurring Payments button.",
+								'jetpack'
+							) }
 						>
-							<div className="components-placeholder__instructions">
-								<p>
-									{ __(
-										"You'll need to upgrade your plan to use the Recurring Payments button.",
-										'jetpack'
-									) }
-								</p>
-								<Button isDefault isLarge href={ this.state.upgradeURL } target="_blank">
-									{ __( 'Upgrade Your Plan', 'jetpack' ) }
-								</Button>
-								{ this.renderDisclaimer() }
-							</div>
+							<Button isSecondary isLarge href={ this.state.upgradeURL } target="_blank">
+								{ __( 'Upgrade Your Plan', 'jetpack' ) }
+							</Button>
+							{ this.renderDisclaimer() }
 						</Placeholder>
 					</div>
 				) }
@@ -424,42 +412,6 @@ class MembershipsButtonEdit extends Component {
 					) }
 				{ ! this.state.shouldUpgrade &&
 					! this.props.attributes.planId &&
-					connected === API_STATE_NOTCONNECTED && (
-						<div className="wp-block-jetpack-recurring-payments">
-							<Placeholder
-								icon={ <BlockIcon icon={ icon } /> }
-								label={ __( 'Recurring Payments', 'jetpack' ) }
-								notices={ notices }
-							>
-								<div className="components-placeholder__instructions">
-									<p>
-										{ __(
-											'In order to start selling Recurring Payments plans, you have to connect to Stripe:',
-											'jetpack'
-										) }
-									</p>
-									<Button
-										isDefault
-										isLarge
-										disabled={ ! stripeConnectUrl }
-										href={ stripeConnectUrl }
-										target={ stripeConnectTarget }
-										rel={ stripeConnectTarget === '_blank' ? 'noopener noreferrer' : undefined }
-										onClick={ this.props.autosaveAndNavigateToConnection }
-									>
-										{ __( 'Connect to Stripe or set up an account', 'jetpack' ) }
-									</Button>
-									<br />
-									<Button isLink onClick={ this.apiCall }>
-										{ __( 'Re-check Connection', 'jetpack' ) }
-									</Button>
-									{ this.renderDisclaimer() }
-								</div>
-							</Placeholder>
-						</div>
-					) }
-				{ ! this.state.shouldUpgrade &&
-					! this.props.attributes.planId &&
 					connected === API_STATE_CONNECTED &&
 					products.length === 0 && (
 						<div className="wp-block-jetpack-recurring-payments">
@@ -469,8 +421,10 @@ class MembershipsButtonEdit extends Component {
 								notices={ notices }
 							>
 								<div className="components-placeholder__instructions">
-									<p>{ __( 'Add your first Recurring Payments plan:', 'jetpack' ) }</p>
-									{ this.renderAddMembershipAmount() }
+									<p>
+										{ __( 'To use this block, first add at least one payment plan.', 'jetpack' ) }
+									</p>
+									{ this.renderAddMembershipAmount( true ) }
 									{ this.renderDisclaimer() }
 								</div>
 							</Placeholder>
@@ -488,17 +442,42 @@ class MembershipsButtonEdit extends Component {
 								notices={ notices }
 							>
 								<div className="components-placeholder__instructions">
-									<p>{ __( 'Select payment plan:', 'jetpack' ) }</p>
+									<p>
+										{ __(
+											'To use this block, select a previously created payment plan.',
+											'jetpack'
+										) }
+									</p>
 									{ this.renderMembershipAmounts() }
-									<p>{ __( 'Or add another Recurring Payments plan:', 'jetpack' ) }</p>
-									{ this.renderAddMembershipAmount() }
+									<p>{ __( 'Or a new one.', 'jetpack' ) }</p>
+									{ this.renderAddMembershipAmount( false ) }
 									{ this.renderDisclaimer() }
 								</div>
 							</Placeholder>
 						</div>
 					) }
 				{ this.state.products && inspectorControls }
-				{ this.props.attributes.planId && blockContent }
+				{ ( ( ( this.hasUpgradeNudge || ! this.state.shouldUpgrade ) &&
+					connected !== API_STATE_LOADING ) ||
+					this.props.attributes.planId ) && (
+					<SubmitButton
+						{ ...{
+							attributes: pick( this.props.attributes, [
+								'submitButtonText',
+								'backgroundButtonColor',
+								'textButtonColor',
+								'customBackgroundButtonColor',
+								'customBackgroundButtonColor',
+							] ),
+							setAttributes: this.props.setAttributes,
+						} }
+					/>
+				) }
+				{ this.hasUpgradeNudge && connected === API_STATE_NOTCONNECTED && (
+					<div className="wp-block-jetpack-recurring-payments disclaimer-only">
+						{ this.renderDisclaimer() }
+					</div>
+				) }
 			</Fragment>
 		);
 	};
@@ -506,18 +485,5 @@ class MembershipsButtonEdit extends Component {
 
 export default compose( [
 	withSelect( select => ( { postId: select( 'core/editor' ).getCurrentPostId() } ) ),
-	withDispatch( dispatch => ( {
-		autosaveAndNavigateToConnection: async event => {
-			const { href, target } = event.target;
-
-			// Special handling if we're opening in _this_ window. Otherwise, just let the navigation happen.
-			if ( href && target !== '_blank' ) {
-				event.preventDefault();
-				await dispatch( 'core/editor' ).autosave();
-				// Using window.top to escape from the editor iframe on WordPress.com
-				window.top.location.href = href;
-			}
-		},
-	} ) ),
 	withNotices,
 ] )( MembershipsButtonEdit );

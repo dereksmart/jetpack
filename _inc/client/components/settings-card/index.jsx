@@ -26,7 +26,12 @@ import {
 	getPlanClass,
 } from 'lib/plans/constants';
 
-import { getSiteAdminUrl, userCanManageModules, getUpgradeUrl } from 'state/initial-state';
+import {
+	isMultisite,
+	getSiteAdminUrl,
+	userCanManageModules,
+	getUpgradeUrl,
+} from 'state/initial-state';
 import { isAkismetKeyValid, isCheckingAkismetKey, getVaultPressData } from 'state/at-a-glance';
 import { getSitePlan, isFetchingSiteData, getActiveFeatures } from 'state/site';
 import SectionHeader from 'components/section-header';
@@ -53,11 +58,10 @@ export const SettingsCard = props => {
 		backupsEnabled = get( vpData, [ 'data', 'features', 'backups' ], false ),
 		scanEnabled = get( vpData, [ 'data', 'features', 'security' ], false );
 
-	// Non admin users only get Publicize, After the Deadline, and Post by Email settings.
-	// composing is not a module slug but it's used so the Composing card is rendered to show AtD.
+	// Non admin users only get Publicize and Post by Email settings.
 	if (
 		! props.userCanManageModules &&
-		! includes( [ 'composing', 'post-by-email', 'publicize' ], props.module )
+		! includes( [ 'post-by-email', 'publicize' ], props.module )
 	) {
 		return <span />;
 	}
@@ -114,7 +118,7 @@ export const SettingsCard = props => {
 				);
 
 			case FEATURE_SECURITY_SCANNING_JETPACK:
-				if ( backupsEnabled || 'is-business-plan' === planClass ) {
+				if ( backupsEnabled || 'is-business-plan' === planClass || props.multisite ) {
 					return '';
 				}
 
@@ -365,5 +369,6 @@ export default connect( state => {
 		seoUpgradeUrl: getUpgradeUrl( state, 'settings-seo' ),
 		searchUpgradeUrl: getUpgradeUrl( state, 'settings-search' ),
 		spamUpgradeUrl: getUpgradeUrl( state, 'settings-spam' ),
+		multisite: isMultisite( state ),
 	};
 } )( SettingsCard );
